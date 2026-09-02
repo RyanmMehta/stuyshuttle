@@ -32,6 +32,7 @@ console.log('\n== parseEtaText ==');
 ck('24 min', mod.parseEtaText('24 min '), 24);
 ck('1h 11min', mod.parseEtaText('1h 11min '), 71);
 ck('--', mod.parseEtaText('--'), null);
+ck('1-2 min → 1', mod.parseEtaText('1-2 min'), 1);
 
 console.log('\n== service window (DST-safe, local NY time) ==');
 // checkWindow(now).morning: Mon–Fri 06:45–11:15 New York time. Covers Route C

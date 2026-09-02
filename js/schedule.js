@@ -192,7 +192,7 @@ export function buildDepartures({
         .filter((a) => a.arrivalAt > now - MIN)
         .map((a) => ({
           at: a.arrivalAt, vehicle: a.vehicle, live: true,
-          stopsAway: a.stopsAway ?? null,
+          stopsAway: a.stopsAway ?? null, loadPct: a.loadPct ?? null, solid: Boolean(a.solid),
           late: latenessMinutes(a.arrivalAt, todaysTimes, now),
         }));
       // Pad with later scheduled departures so a single tracked bus doesn't
@@ -232,7 +232,7 @@ function toFutureDepartures(clockStrings, now) {
     .map((t) => parseClockTime(t, now))
     .filter((ts) => ts !== null && ts > now - MIN)
     .sort((a, b) => a - b)
-    .map((ts) => ({ at: ts, vehicle: null, live: false, stopsAway: null, late: null }));
+    .map((ts) => ({ at: ts, vehicle: null, live: false, stopsAway: null, loadPct: null, solid: false, late: null }));
 }
 
 // ---------------------------------------------------------------------------
@@ -242,13 +242,13 @@ function toFutureDepartures(clockStrings, now) {
 export function planTrip({
   departsAt, walkToStop, buffer, rideMinutes, walkToBuilding,
   arrivalEstimated = false, now = Date.now(), vehicle = null, live = false,
-  stopsAway = null, late = null,
+  stopsAway = null, late = null, loadPct = null, solid = false,
 }) {
   const leaveAt = departsAt - (walkToStop + buffer) * MIN;
   const arriveAt = departsAt + (rideMinutes + walkToBuilding) * MIN;
   const walkDeadline = departsAt - walkToStop * MIN; // last instant you can still walk it
   return {
-    departsAt, leaveAt, arriveAt, arrivalEstimated, vehicle, live, stopsAway, late,
+    departsAt, leaveAt, arriveAt, arrivalEstimated, vehicle, live, stopsAway, late, loadPct, solid,
     leaveInMinutes: minutesUntil(leaveAt, now),
     // Physically can't make it any more.
     missed: walkDeadline <= now,

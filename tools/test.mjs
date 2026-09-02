@@ -88,6 +88,9 @@ check('"24 min "', parseEtaText('24 min '), 24);
 check('"1h 11min "', parseEtaText('1h 11min '), 71);
 check('"2 hrs 5 min"', parseEtaText('2 hrs 5 min'), 125);
 check('"Arriving"', parseEtaText('Arriving'), 0);
+check('"1-2 min" range → earlier bound 1', parseEtaText('1-2 min'), 1);
+check('"3-4 min" → 3', parseEtaText('3-4 min'), 3);
+check('"9 min " → 9', parseEtaText('9 min '), 9);
 check('"--" -> null', parseEtaText('--'), null);
 check('"Route service starts at 7:30 AM" -> null', parseEtaText('Route service starts at 7:30 AM'), null);
 
@@ -99,6 +102,16 @@ check('weekend trap → none but times kept for display', [n2.tier, n2.outOfServ
 const n3 = normalizeEta({ ETAs: { '8801': [{ eta: '1h 11min ', arrivalTimestamp: 1788319203, busName: '2191', error: ['No valid GPS from the bus', 'Probably, bus is in detour / on yard', 7619] }] } }, '8801');
 check('GPS-error entry flagged lowConfidence', n3.arrivals[0].lowConfidence, true);
 check('…and buildDepartures rejects it', buildDepartures({ eta: n3, now: WED }).tier, 'none');
+
+console.log('\n== third live shape: solid ETA anchored to the assigned trip (real Route C payload) ==');
+const solidRaw = { ETAs: { '6556': [{ secondsSpent: 452, eta: '8 min ', etaR: '8', solid: 1, busName: '2119', paxLoadS: '6%',
+  solidEta: { arrival: '2026-09-02 10:30:00', arrivalUtc: '2026-09-02 14:30:00', scheduledDeparture: '2026-09-02 10:30:00' }, scheduleTimes: null }] } };
+const n4 = normalizeEta(solidRaw, '6556', nyTime(2026, 8, 2, 10, 22));
+check('uses the precise solid arrival (10:30 ET)', fmtClock(n4.arrivals[0].arrivalAt), '10:30 AM');
+check('carries load% and solid flag', [n4.arrivals[0].loadPct, n4.arrivals[0].solid], [6, true]);
+const b4 = buildDepartures({ eta: n4, fallbackTimes: routeC.stops[0].times, now: nyTime(2026, 8, 2, 10, 22) });
+check('tier live, on time vs the 10:30 timetable', [b4.tier, b4.departures[0].late, b4.departures[0].loadPct], ['live', 0, 6]);
+check('null scheduleTimes in payload does not break the list', b4.departures.map((d) => fmtClock(d.at)), ['10:30 AM']);
 
 console.log('\n== ride time is never negative (loop-route trap) ==');
 const routeE = snap.schedules['72946'];

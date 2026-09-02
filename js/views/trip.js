@@ -80,7 +80,8 @@ function renderHero(ctx) {
         h('span', null,
           `Bus ${t.vehicle || ''}`.trim(),
           t.stopsAway !== null ? ` · ${t.stopsAway === 0 ? 'at the stop' : `${t.stopsAway} stop${t.stopsAway === 1 ? '' : 's'} away`}` : '',
-          t.late === null ? '' : t.late > 2 ? ` · ${t.late} min late` : t.late < -1 ? ` · ${-t.late} min early` : ' · on time'))
+          t.late === null ? '' : t.late > 2 ? ` · ${t.late} min late` : t.late < -1 ? ` · ${-t.late} min early` : ' · on time',
+          t.loadPct !== null ? ` · ${t.loadPct}% full` : ''))
     : h('div', { class: 'busline busline--none' },
         icon('clock', 16),
         h('span', null, result.tier === 'offline' ? 'Timetable (offline)' : 'Not tracking yet — timetable time'));

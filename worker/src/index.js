@@ -256,6 +256,8 @@ function parseEtaText(text) {
   if (t.startsWith('arriv') || t === 'now' || t === 'due') return 0;
   const hm = /(\d+)\s*h(?:r|our)?s?\s*(\d+)\s*min/.exec(t);
   if (hm) return +hm[1] * 60 + +hm[2];
+  const range = /(\d+)\s*[-–]\s*(\d+)\s*min/.exec(t); // "1-2 min" → earlier bound
+  if (range) return Math.min(+range[1], +range[2]);
   const m = /(\d+)\s*min/.exec(t);
   return m ? +m[1] : null;
 }

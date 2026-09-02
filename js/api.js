@@ -221,6 +221,10 @@ export function parseEtaText(text) {
   if (hm) return parseInt(hm[1], 10) * 60 + parseInt(hm[2], 10);
   const h = /^(\d+)\s*h(?:r|our)?s?$/.exec(t);
   if (h) return parseInt(h[1], 10) * 60;
+  // Passio also sends ranges ("1-2 min", "3-4 min"). Take the EARLIER bound:
+  // for catching a bus, assuming it arrives sooner is the safe error.
+  const range = /(\d+)\s*[-–]\s*(\d+)\s*min/.exec(t);
+  if (range) return Math.min(parseInt(range[1], 10), parseInt(range[2], 10));
   const m = /(\d+)\s*min/.exec(t);
   if (m) return parseInt(m[1], 10);
   const bare = /^(\d+)$/.exec(t);
@@ -254,11 +258,21 @@ export function normalizeEta(raw, stopId, now = Date.now()) {
     const arrivals = live
       .filter((e) => !e.OOS)
       .map((e) => {
+        // Three observed live shapes, most precise first:
+        //   1. unix `arrivalTimestamp`
+        //   2. a "solid" ETA anchored to the bus's assigned trip, with a UTC
+        //      arrival string (seen on Route C: arrival "10:30:00" for the
+        //      10:30 departure while the bus was still at 715 Broadway)
+        //   3. only human text such as "8 min " / "1-2 min"
+        const solidUtc = e.solidEta?.arrivalUtc ? Date.parse(e.solidEta.arrivalUtc.replace(' ', 'T') + 'Z') : NaN;
         const at = e.arrivalTimestamp
           ? e.arrivalTimestamp * 1000
+          : Number.isFinite(solidUtc) ? solidUtc
+          : Number.isFinite(+e.secondsSpent) && +e.secondsSpent > 0 && +e.secondsSpent < 86400 ? now + +e.secondsSpent * 1000
           : addMinutes(now, parseEtaText(e.eta));
-        if (at === null) return null;
+        if (at === null || !Number.isFinite(at)) return null;
         const err = Array.isArray(e.error) && e.error.length ? String(e.error[0]) : null;
+        const loadPct = /^(\d+)%$/.exec(String(e.paxLoadS || ''));
         return {
           arrivalAt: at,
           vehicle: e.busName || null,
@@ -266,8 +280,12 @@ export function normalizeEta(raw, stopId, now = Date.now()) {
           reportedAt: e.created ? parseNy(e.created) : null,
           error: err,
           lowConfidence: Boolean(err && LOW_CONFIDENCE.test(err)),
+          // A solid ETA is Passio's schedule-anchored prediction for a tracked
+          // bus's assigned trip — real vehicle, timetable-shaped arrival.
+          solid: e.solid === 1 || e.solid === '1',
           stopsAway: Number.isFinite(+e.stopsAmount) ? +e.stopsAmount : null,
           distanceText: e.distance && e.distance !== '0mi' ? String(e.distance) : null,
+          loadPct: loadPct ? +loadPct[1] : null,
         };
       })
       .filter(Boolean)

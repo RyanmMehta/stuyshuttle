@@ -131,6 +131,7 @@ function derive(now) {
       departsAt: d.at, walkToStop, buffer: state.prefs.buffer,
       rideMinutes: ride.minutes ?? 15, walkToBuilding, arrivalEstimated: ride.estimated,
       now, vehicle: d.vehicle, live: d.live, stopsAway: d.stopsAway, late: d.late,
+      loadPct: d.loadPct, solid: d.solid,
     }));
   const hero = heroFor(trips, now);
 
