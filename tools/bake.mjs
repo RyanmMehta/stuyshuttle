@@ -52,11 +52,12 @@ async function fetchStopsAndSequences() {
   for (const s of Object.values(raw.stops)) {
     stops[s.stopId] = { id: s.stopId, name: s.name, lat: s.latitude, lon: s.longitude };
   }
-  const sequences = {};
+  const sequences = {}, routePoints = {};
   for (const [routeId, entry] of Object.entries(raw.routes || {})) {
     sequences[routeId] = entry.slice(2).map(([position, stopId]) => ({ position: String(position), stopId: String(stopId) }));
   }
-  return { stops, sequences };
+  for (const [routeId, segs] of Object.entries(raw.routePoints || {})) routePoints[routeId] = segs;
+  return { stops, sequences, routePoints };
 }
 
 async function fetchAlerts() {
@@ -74,7 +75,7 @@ const main = async () => {
   const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : null;
   const seed = existsSync(SEED) ? JSON.parse(readFileSync(SEED, 'utf8')) : null;
 
-  const [routes, { stops, sequences }, alerts] = await Promise.all([fetchRoutes(), fetchStopsAndSequences(), fetchAlerts()]);
+  const [routes, { stops, sequences, routePoints }, alerts] = await Promise.all([fetchRoutes(), fetchStopsAndSequences(), fetchAlerts()]);
   console.log(`  routes ${routes.length} · stops ${Object.keys(stops).length} · alerts ${alerts.length}`);
   const stopNames = Object.fromEntries(Object.values(stops).map((s) => [s.id, s.name]));
   const routeIds = resolveRouteIds(routes);
@@ -113,7 +114,7 @@ const main = async () => {
     );
   }
 
-  const snapshot = { generatedAt: new Date().toISOString(), systemId: SYSTEM_ID, warnings, routeIds, routes, stops, sequences, schedules, serviceDays, alerts };
+  const snapshot = { generatedAt: new Date().toISOString(), systemId: SYSTEM_ID, warnings, routeIds, routes, stops, sequences, routePoints, schedules, serviceDays, alerts };
   mkdirSync(`${ROOT}/data`, { recursive: true });
   writeFileSync(OUT, JSON.stringify(snapshot, null, 2));
   console.log(`\nWrote data/timetable.json${warnings.length ? ` (${warnings.length} note(s))` : ''}`);

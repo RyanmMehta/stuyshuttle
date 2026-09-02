@@ -134,18 +134,22 @@ check('at 10:00 AM only 10:30 remains', buildDepartures({ eta: null, fallbackTim
 
 console.log('\n== service days (the Saturday/Friday trap) ==');
 const SD = snap.serviceDays;
-check('Route C runs Mon-Thu', serviceDayLabel(SD, '74771'), 'Mon–Thu');
+// Day types come from routes.js (authoritative), NOT Passio's flaky probe.
+check('Route C official days = Mon–Thu', Object.keys(ROUTES.C.days).join(''), '1234');
+check('Route F official days = Mon–Thu', Object.keys(ROUTES.F.days).join(''), '1234');
 ok('snapshot resolved Route E by name to a fresh id', typeof E_ID === 'string' && E_ID !== '72946', E_ID);
 // Passio's service-day probe is unreliable whenever a live bus answers the
 // timeline query; the app takes day types from NYU's official sheets instead.
 check('Route E official days = Mon–Fri', Object.entries(ROUTES.E.days).map(([d]) => d).join(''), '12345');
 check('Route W official days = Sat–Sun', Object.entries(ROUTES.W.days).map(([d]) => d).join(''), '06');
-check('Route F runs Mon-Thu', serviceDayLabel(SD, '74772'), 'Mon–Thu');
-ok('C does NOT run Saturday', servesOn(SD, '74771', SAT) === false);
-ok('C does NOT run Friday', servesOn(SD, '74771', FRI) === false);
-ok('C DOES run Wednesday', servesOn(SD, '74771', WED) === true);
-ok('E DOES run Friday', servesOn(SD, '72946', FRI) === true);
-ok('unknown route defaults to running', servesOn(SD, '99999', WED) === true);
+// (Route F day-type asserted above via ROUTES.F.days)
+// servesOn against ROUTES-derived serviceDays (index 0=Sun) — what the app uses.
+const RD = Object.fromEntries(Object.values(ROUTES).map((r) => [r.key, [0,1,2,3,4,5,6].map((d) => Boolean(r.days[d]))]));
+ok('C does NOT run Saturday', servesOn(RD, 'C', SAT) === false);
+ok('C does NOT run Friday', servesOn(RD, 'C', FRI) === false);
+ok('C DOES run Wednesday', servesOn(RD, 'C', WED) === true);
+ok('E DOES run Friday', servesOn(RD, 'E', FRI) === true);
+ok('unknown route defaults to running', servesOn(RD, 'ZZ', WED) === true);
 ok('isWeekend(Sat)', isWeekend(new Date(SAT)) === true);
 
 console.log('\n== CRITICAL: offline snapshot must not invent weekend service ==');

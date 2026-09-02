@@ -12,16 +12,18 @@ import { h, el, icon, toast, fmtTime } from './ui.js';
 import { MIN, explainNoService, minutesUntil } from './schedule.js';
 import { loadPrefs, savePrefs, cacheResponse, readCache, loadTimetableOverlay, saveTimetableOverlay } from './store.js';
 import { ROUTES, resolveRouteIds, dayTypeFor, tableFor, stopTimes, stopName, CAMPUS_STOP } from './routes.js';
-import { planOptions, chooseHero, upcomingRows, applyLive } from './planner.js';
+import { planOptions, chooseHero, upcomingRows, applyLiveValidated } from './planner.js';
+import { classifyArrivals } from './geo.js';
 import { buildIcs, buildLeaveEvents } from './ics.js';
 import * as push from './push.js';
 import { renderTrip } from './views/trip.js';
 import { renderAlerts } from './views/alerts.js';
 import { renderTimetable } from './views/timetable.js';
+import { renderMap, teardownMap } from './views/map.js';
 import { renderSettings } from './views/settings.js';
 
 const $ = (sel) => document.querySelector(sel);
-const TABS = ['trip', 'alerts', 'timetable', 'settings'];
+const TABS = ['trip', 'map', 'alerts', 'timetable', 'settings'];
 
 /** Testing hook: ?now=2026-09-02T07:45 pins the clock (New York wall time). */
 const TIME_OVERRIDE = (() => {
@@ -72,6 +74,7 @@ function snapshot() {
     routeIds: { ...(b.routeIds || {}), ...(o.routeIds || {}) },
     sequences: { ...(b.sequences || {}), ...(o.sequences || {}) },
     stops: { ...(b.stops || {}), ...(o.stops || {}) },
+    routePoints: { ...(b.routePoints || {}), ...(o.routePoints || {}) },
   };
 }
 const routeIdOf = (key) => snapshot().routeIds?.[key] || null;
@@ -96,12 +99,18 @@ function derive(now) {
   let rows = upcomingRows(options, 6, state.prefs.homeStopId);
   let hero = chooseHero(options, now, state.prefs.homeStopId);
 
-  // Live overlay for the bus we are polling (the hero's stop), and any row on the same route+stop.
+  // GPS-validated live overlay for the bus we are polling (the hero's stop).
   const live = state.safeMode ? null : state.eta;
+  const snap = snapshot();
   if (live && hero.trip && state.etaFor === `${hero.trip.route}:${hero.trip.stopId}`) {
-    const t = applyLive(hero.trip, live, now);
+    const routeId = routeIdOf(hero.trip.route);
+    const geoCtx = { vehicles: state.vehicles, sequence: snap.sequences?.[routeId] || [], stops: snap.stops || {}, targetStopId: hero.trip.stopId, routeName: ROUTES[hero.trip.route]?.name };
+    const table = tableFor(state.official, hero.trip.route, now);
+    const schedTimes = table ? stopTimes(table, hero.trip.stopId, 'board', now) : [];
+    const t = applyLiveValidated(hero.trip, live, geoCtx, schedTimes, now);
     hero = t.missed ? { mode: 'missed', trip: t } : t.tight ? { mode: 'now', trip: t } : { mode: 'wait', trip: t, leaveIn: minutesUntil(t.leaveAt, now) };
-    rows = rows.map((r) => (r.route === hero.trip.route && r.stopId === hero.trip.stopId ? applyLive(r, live, now) : r));
+    // Reflect the same live bus on its matching row.
+    rows = rows.map((r) => (r.route === hero.trip.route && r.stopId === hero.trip.stopId ? { ...r, ...t, alternatives: r.alternatives } : r));
   }
   // NYU's live system says the hero's route is out of service today → don't show its timetable as if running.
   const outOfService = Boolean(live?.outOfService && hero.trip && state.etaFor?.startsWith(hero.trip.route + ':'));
@@ -200,7 +209,7 @@ async function refreshDirectory({ force = false } = {}) {
     const ids = resolveRouteIds(routes);
     const prev = snapshot().routeIds;
     for (const [k, id] of Object.entries(ids)) if (prev[k] && prev[k] !== id) warnings.push(`${ROUTES[k].name} moved to a new id (${prev[k]} → ${id})`);
-    overlay.routeIds = ids; overlay.sequences = seq.sequences; overlay.stops = seq.stops;
+    overlay.routeIds = ids; overlay.sequences = seq.sequences; overlay.stops = seq.stops; overlay.routePoints = seq.routePoints;
     overlay.directoryDay = today;
     state.overlay = overlay; saveTimetableOverlay(overlay);
     if (warnings.length && state.booted) toast(warnings[0], 'warn', 5000);
@@ -320,7 +329,7 @@ function ctx() {
     direction: state.direction, eta: state.safeMode ? null : state.eta, etaFor: state.etaFor,
     alerts: state.alerts, vehicles: state.vehicles, offline: state.offline,
     freshness: state.freshness, pushState: state.pushState, timetableStatus: state.timetableStatus,
-    ui: state.ui, actions, derived: derive(now), routeIdOf,
+    ui: state.ui, actions, derived: derive(now), routeIdOf, stateTab: () => state.tab,
   };
 }
 
@@ -330,7 +339,9 @@ function render() {
   const scrollY = window.scrollY;
   try {
     const c = ctx();
-    const view = state.tab === 'alerts' ? renderAlerts(c)
+    if (state.tab !== 'map') teardownMap();
+    const view = state.tab === 'map' ? renderMap(c)
+      : state.tab === 'alerts' ? renderAlerts(c)
       : state.tab === 'timetable' ? renderTimetable(c)
       : state.tab === 'settings' ? renderSettings(c)
       : renderTrip(c);
@@ -369,7 +380,7 @@ function renderTabbar() {
     h('button', { class: `tab ${state.tab === key ? 'is-active' : ''}`, onclick: () => actions.setTab(key), 'aria-current': state.tab === key ? 'page' : null },
       h('span', { class: 'tab__icon' }, icon(ic, 22), count ? h('span', { class: 'tab__count' }, count) : null),
       h('span', { class: 'tab__label' }, label));
-  nav.replaceChildren(tab('trip', 'Trip', 'bus'), tab('alerts', 'Alerts', 'bell', unread), tab('timetable', 'Times', 'clock'), tab('settings', 'Settings', 'settings'));
+  nav.replaceChildren(tab('trip', 'Trip', 'bus'), tab('map', 'Map', 'pin'), tab('alerts', 'Alerts', 'bell', unread), tab('timetable', 'Times', 'clock'), tab('settings', 'Settings', 'settings'));
 }
 
 function renderFooter() {
@@ -428,6 +439,7 @@ async function boot() {
   fast.start(); slow.start();
   state.booted = true;
   setInterval(() => { if (!document.hidden && state.tab === 'trip') render(); }, 10_000);
+  // The map manages its own live updates; don't let the trip re-render loop touch it.
   setTimeout(() => refreshDirectory().catch(() => {}), 2500);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }

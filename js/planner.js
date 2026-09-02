@@ -7,7 +7,8 @@
  * the earliest arrival you can still walk to, and ties go to whichever lets
  * you leave latest.
  */
-import { MIN, planTrip, minutesUntil } from './schedule.js';
+import { MIN, planTrip, minutesUntil, parseClockTime } from './schedule.js';
+import { trustworthyArrivals } from './geo.js';
 import { tableFor, tripsBetween, TO_CAMPUS, TO_HOME, CAMPUS_STOP, stopName, ROUTES } from './routes.js';
 
 /**
@@ -122,20 +123,51 @@ export function upcomingRows(options, limit = 6, homeStopId = null) {
 }
 
 /**
- * Overlay a live ETA on one option. Live wins when it refers to the same trip
- * (within 20 min of the published departure); otherwise leave the timetable.
+ * Overlay a GPS-validated live ETA on one option.
+ *
+ * This is the accuracy fix. Instead of trusting Passio's raw "N min" (which can
+ * be a stale schedule-anchored guess for a bus that already drove past), we:
+ *   1. keep only arrivals a real GPS position confirms are still approaching
+ *      (geo.trustworthyArrivals drops "passed" buses and stale estimates);
+ *   2. use the soonest such arrival as the real next bus;
+ *   3. if none are trustworthy, DON'T invent one — return the schedule option
+ *      unchanged (the UI labels it "not tracking yet").
+ *
+ * `scheduleTimesAtStop` (clock strings) lets us report lateness against the
+ * nearest scheduled departure rather than whichever trip the option came from.
  */
+export function applyLiveValidated(option, eta, geoCtx, scheduleTimesAtStop = [], now = Date.now()) {
+  if (!option || !eta) return option;
+  if (eta.tier !== 'live' || !eta.arrivals?.length) return option;
+  const trust = trustworthyArrivals(eta.arrivals, { ...geoCtx, now });
+  if (!trust.length) return { ...option, liveChecked: true }; // GPS says nothing is really coming
+  const a = trust.find((x) => x.arrivalAt > now - 60_000) || trust[0];
+
+  // Lateness vs the closest scheduled time at this stop (not the source trip).
+  let late = null;
+  const sched = scheduleTimesAtStop.map((t) => parseClockTime(t, now)).filter((x) => x !== null);
+  if (sched.length) {
+    const nearest = sched.reduce((b, ts) => (Math.abs(ts - a.arrivalAt) < Math.abs(b - a.arrivalAt) ? ts : b), sched[0]);
+    if (Math.abs(nearest - a.arrivalAt) <= 20 * MIN) late = Math.round((a.arrivalAt - nearest) / MIN);
+  }
+
+  const trip = planTrip({
+    departsAt: a.arrivalAt, walkToStop: option.walkToStop, buffer: option.buffer ?? 3,
+    rideMinutes: option.rideMin, walkToBuilding: option.walkToBuilding, now,
+    vehicle: a.vehicle, live: true, stopsAway: a.stopsAway, loadPct: a.loadPct, solid: a.solid, late,
+  });
+  return { ...option, ...trip, alightAt: a.arrivalAt + (option.alightAt - option.departsAt), live: true, liveChecked: true, confidence: a.confidence, scheduledDepartsAt: option.departsAt };
+}
+
+/** Back-compat shim (unused by the app now); kept so older tests don't break. */
 export function applyLive(option, eta, now = Date.now()) {
   if (!option || !eta || eta.tier !== 'live' || !eta.arrivals?.length) return option;
   const a = eta.arrivals.find((x) => !x.lowConfidence && Math.abs(x.arrivalAt - option.departsAt) <= 20 * MIN);
   if (!a) return option;
   const shift = a.arrivalAt - option.departsAt;
-  const trip = planTrip({
-    departsAt: a.arrivalAt, walkToStop: option.walkToStop, buffer: option.buffer ?? 3,
-    rideMinutes: option.rideMin, walkToBuilding: option.walkToBuilding, now,
-    vehicle: a.vehicle, live: true, stopsAway: a.stopsAway, loadPct: a.loadPct, solid: a.solid,
-    late: Math.round(shift / MIN),
-  });
+  const trip = planTrip({ departsAt: a.arrivalAt, walkToStop: option.walkToStop, buffer: option.buffer ?? 3,
+    rideMinutes: option.rideMin, walkToBuilding: option.walkToBuilding, now, vehicle: a.vehicle, live: true,
+    stopsAway: a.stopsAway, loadPct: a.loadPct, solid: a.solid, late: Math.round(shift / MIN) });
   return { ...option, ...trip, alightAt: option.alightAt + shift, live: true, scheduledDepartsAt: option.departsAt };
 }
 

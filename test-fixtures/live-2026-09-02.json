@@ -1,0 +1,728 @@
+{
+ "capturedAt": "2026-09-02T18:41:59.729Z",
+ "buses": {
+  "buses": {
+   "402847": [
+    {
+     "deviceId": 402847,
+     "created": "02:37 PM",
+     "createdTime": "02:37 PM",
+     "paxLoad": 0,
+     "bus": "2958",
+     "busId": 17965,
+     "userId": "1007",
+     "routeBlockId": "225740",
+     "latitude": "40.746322800",
+     "longitude": "-73.979632000",
+     "calculatedCourse": "358.76026546385043",
+     "outOfService": 0,
+     "more": "100",
+     "totalCap": 45,
+     "color": "#843c39",
+     "busName": "2958",
+     "busType": null,
+     "routeId": "75152",
+     "route": "Manhattan Park Ave",
+     "outdated": 0
+    }
+   ],
+   "402849": [
+    {
+     "deviceId": 402849,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 0,
+     "bus": "2960",
+     "busId": 18101,
+     "userId": "1007",
+     "routeBlockId": "225756",
+     "latitude": "40.646934000",
+     "longitude": "-74.021030300",
+     "calculatedCourse": "111.92958775109861",
+     "outOfService": 0,
+     "more": "102",
+     "totalCap": 45,
+     "color": "#bcbd22",
+     "busName": "2960",
+     "busType": null,
+     "routeId": "75154",
+     "route": "Brooklyn NYU Langone Shuttle",
+     "outdated": 0
+    }
+   ],
+   "411573": [
+    {
+     "deviceId": 411573,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 11,
+     "bus": "2144",
+     "busId": 4654,
+     "userId": "1007",
+     "routeBlockId": "222025",
+     "latitude": "40.714881600",
+     "longitude": "-73.996569500",
+     "calculatedCourse": "112.33513031647237",
+     "outOfService": 0,
+     "more": "102",
+     "totalCap": 64,
+     "color": "#f7b6d2",
+     "busName": "2144",
+     "busType": "",
+     "routeId": "74769",
+     "route": "Route A",
+     "outdated": 0
+    }
+   ],
+   "411574": [
+    {
+     "deviceId": 411574,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 5,
+     "bus": "2145",
+     "busId": 4655,
+     "userId": "1007",
+     "routeBlockId": "222058",
+     "latitude": "40.740873000",
+     "longitude": "-73.981929100",
+     "calculatedCourse": "9.657627808736265",
+     "outOfService": 0,
+     "more": "101",
+     "totalCap": 64,
+     "color": "#3CB371",
+     "busName": "2145",
+     "busType": "",
+     "routeId": "74772",
+     "route": "Route F",
+     "outdated": 0
+    }
+   ],
+   "411576": [
+    {
+     "deviceId": 411576,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 1,
+     "bus": "2147",
+     "busId": 4657,
+     "userId": "1007",
+     "routeBlockId": "222076",
+     "latitude": "40.728529800",
+     "longitude": "-73.993913000",
+     "calculatedCourse": "216.0134846208713",
+     "outOfService": 0,
+     "more": "102",
+     "totalCap": 64,
+     "color": "#87CEFA",
+     "busName": "2147",
+     "busType": "",
+     "routeId": "74773",
+     "route": "Route G",
+     "outdated": 0
+    }
+   ],
+   "411577": [
+    {
+     "deviceId": 411577,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 0,
+     "bus": "2148",
+     "busId": 4651,
+     "userId": "1007",
+     "routeBlockId": "222002",
+     "latitude": "40.741867300",
+     "longitude": "-73.983026800",
+     "calculatedCourse": "216.65470621291024",
+     "outOfService": 0,
+     "more": "102",
+     "totalCap": 64,
+     "color": "#CD5C5C",
+     "busName": "2148",
+     "busType": "",
+     "routeId": "74768",
+     "route": "Route E",
+     "outdated": 0
+    }
+   ],
+   "411580": [
+    {
+     "deviceId": 411580,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 9,
+     "bus": "2190",
+     "busId": 3692,
+     "userId": "1007",
+     "routeBlockId": "222043",
+     "latitude": "40.721829600",
+     "longitude": "-73.997455300",
+     "calculatedCourse": "1.272222522231857",
+     "outOfService": 0,
+     "more": "101",
+     "totalCap": 64,
+     "color": "#9370DB",
+     "busName": "2190",
+     "busType": "Transit Bus",
+     "routeId": "74770",
+     "route": "Route B",
+     "outdated": 0
+    }
+   ],
+   "416427": [
+    {
+     "deviceId": 416427,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 40,
+     "bus": "2119",
+     "busId": 10733,
+     "userId": "1007",
+     "routeBlockId": "222009",
+     "latitude": "40.695402300",
+     "longitude": "-73.987019300",
+     "calculatedCourse": "344.47235004158614",
+     "outOfService": 0,
+     "more": "101",
+     "totalCap": 64,
+     "color": "#f7b6d2",
+     "busName": "2119",
+     "busType": "",
+     "routeId": "74769",
+     "route": "Route A",
+     "outdated": 0
+    }
+   ],
+   "453631": [
+    {
+     "deviceId": 453631,
+     "created": "02:41 PM",
+     "createdTime": "02:41 PM",
+     "paxLoad": 0,
+     "bus": "Ferry 02",
+     "busId": 15322,
+     "userId": "1007",
+     "routeBlockId": "117887",
+     "latitude": "40.694445700",
+     "longitude": "-74.005618100",
+     "calculatedCourse": "29.20829393049462",
+     "outOfService": 0,
+     "more": "102",
+     "totalCap": 10,
+     "color": "#e6550d",
+     "busName": "Ferry 02",
+     "busType": null,
+     "routeId": "45769",
+     "route": "Ferry Route 1",
+     "outdated": 0
+    }
+   ]
+  },
+  "excludedRoutes": [
+   -1,
+   74774
+  ],
+  "time": {
+   "1007": "02:41 PM",
+   "2396": "02:41 PM"
+  },
+  "debug": {
+   "systemIds": [
+    1007,
+    "2396"
+   ]
+  }
+ },
+ "etaE17": {
+  "debug": {
+   "mtJOIN": 0.0016961097717285156
+  },
+  "ETAs": {
+   "6566": [
+    {
+     "secondsSpent": 213,
+     "eta": "3-4 min",
+     "etaR": "4",
+     "solidEta": {
+      "id": "29722891762",
+      "busId": "4656",
+      "updated": "2026-09-02 14:32:09",
+      "routeStopId": "1700191",
+      "arrival": "2026-09-02 14:45:32",
+      "etaVersionId": "1",
+      "scheduledArrival": null,
+      "scheduledDeparture": "2026-09-02 08:01:00",
+      "stopId": "6566",
+      "deviceId": "411575",
+      "routeGroupId": null,
+      "tripId": "1160114",
+      "arrivalUtc": "2026-09-02 18:45:32",
+      "updatedUtc": "2026-09-02 18:32:09",
+      "routeId": "74768",
+      "scheduledArrivalUtc": null,
+      "scheduledDepartureUtc": "2026-09-02 12:01:00",
+      "arrivalActualUtc": null,
+      "arrivalActual": null,
+      "tripIndex": "0",
+      "tripStart": null,
+      "duration": 213
+     },
+     "goShowSchedule": "1",
+     "scheduleTimes": null,
+     "scheduleNotEmpty": "1",
+     "busName": "2146",
+     "driver": "Guiulfo Collan",
+     "paxLoadS": "0%",
+     "solid": 1,
+     "updatedSecAgo": 590
+    },
+    {
+     "secondsSpent": 340,
+     "eta": "6 min ",
+     "etaR": "6",
+     "solidEta": {
+      "id": "29754303961",
+      "busId": "4651",
+      "updated": "2026-09-02 14:37:53",
+      "routeStopId": "1700191",
+      "arrival": "2026-09-02 14:47:39",
+      "etaVersionId": "1",
+      "scheduledArrival": null,
+      "scheduledDeparture": "2026-09-02 14:26:00",
+      "stopId": "6566",
+      "deviceId": "453460",
+      "routeGroupId": null,
+      "tripId": "1160119",
+      "arrivalUtc": "2026-09-02 18:47:39",
+      "updatedUtc": "2026-09-02 18:37:53",
+      "routeId": "74768",
+      "scheduledArrivalUtc": null,
+      "scheduledDepartureUtc": "2026-09-02 18:26:00",
+      "arrivalActualUtc": null,
+      "arrivalActual": null,
+      "tripIndex": "0",
+      "tripStart": null,
+      "duration": 340
+     },
+     "goShowSchedule": "1",
+     "scheduleTimes": null,
+     "scheduleNotEmpty": "1",
+     "busName": "2148",
+     "driver": "Dimas Sanchez",
+     "paxLoadS": "0%",
+     "solid": 1,
+     "updatedSecAgo": 246
+    },
+    {
+     "secondsSpent": 466,
+     "eta": "8 min ",
+     "etaR": "8",
+     "solidEta": {
+      "id": "29759903146",
+      "busId": "19357",
+      "updated": "2026-09-02 14:38:53",
+      "routeStopId": "1700191",
+      "arrival": "2026-09-02 14:49:45",
+      "etaVersionId": "1",
+      "scheduledArrival": null,
+      "scheduledDeparture": "2026-09-02 08:41:00",
+      "stopId": "6566",
+      "deviceId": "447795",
+      "routeGroupId": null,
+      "tripId": "1160107",
+      "arrivalUtc": "2026-09-02 18:49:45",
+      "updatedUtc": "2026-09-02 18:38:53",
+      "routeId": "74768",
+      "scheduledArrivalUtc": null,
+      "scheduledDepartureUtc": "2026-09-02 12:41:00",
+      "arrivalActualUtc": null,
+      "arrivalActual": null,
+      "tripIndex": "0",
+      "tripStart": null,
+      "duration": 466
+     },
+     "goShowSchedule": "1",
+     "scheduleTimes": null,
+     "scheduleNotEmpty": "1",
+     "busName": "Spare 1",
+     "driver": "Dimas Sanchez",
+     "paxLoadS": "0%",
+     "solid": 1,
+     "updatedSecAgo": 186
+    }
+   ]
+  },
+  "mt": 0.003866910934448242,
+  "time": "2026-09-02 02:41:59 PM"
+ },
+ "routeE_seq": [
+  [
+   "1",
+   "6545",
+   0
+  ],
+  [
+   "2",
+   "6564",
+   0
+  ],
+  [
+   "3",
+   "6580",
+   0
+  ],
+  [
+   "4",
+   "6566",
+   0
+  ],
+  [
+   "5",
+   "6567",
+   0
+  ],
+  [
+   "6",
+   "6568",
+   0
+  ],
+  [
+   "7",
+   "13110",
+   0
+  ],
+  [
+   "8",
+   "6570",
+   0
+  ],
+  [
+   "9",
+   "6571",
+   0
+  ],
+  [
+   "10",
+   "13118",
+   0
+  ],
+  [
+   "11",
+   "6573",
+   0
+  ],
+  [
+   "12",
+   "6545",
+   1
+  ]
+ ],
+ "stops": {
+  "6545": {
+   "name": "715 Broadway",
+   "lat": 40.729050553,
+   "lon": -73.993711118
+  },
+  "6547": {
+   "name": "Metro Tech Way",
+   "lat": 40.693106,
+   "lon": -73.985498
+  },
+  "6548": {
+   "name": "6 Metro Tech Center",
+   "lat": 40.694407,
+   "lon": -73.987149
+  },
+  "6550": {
+   "name": "Broadway & Broome St.",
+   "lat": 40.721635,
+   "lon": -74.000049
+  },
+  "6551": {
+   "name": "80 Lafayette Street",
+   "lat": 40.717122,
+   "lon": -74.001777
+  },
+  "6553": {
+   "name": "Lafayette & E. 4th St",
+   "lat": 40.727934,
+   "lon": -73.993036
+  },
+  "6556": {
+   "name": "20th Street At Loop Exit",
+   "lat": 40.734085,
+   "lon": -73.977781
+  },
+  "6557": {
+   "name": "Avenue C At 18th Street",
+   "lat": 40.731242,
+   "lon": -73.974143
+  },
+  "6558": {
+   "name": "Avenue C At 16th Street",
+   "lat": 40.729895,
+   "lon": -73.974684
+  },
+  "6559": {
+   "name": "Avenue C At 14th Street",
+   "lat": 40.72883,
+   "lon": -73.975474
+  },
+  "6560": {
+   "name": "14th Street At Avenue B",
+   "lat": 40.729371,
+   "lon": -73.977786
+  },
+  "6561": {
+   "name": "14th Street At Avenue A",
+   "lat": 40.730387,
+   "lon": -73.980194
+  },
+  "6562": {
+   "name": "14th Street At 1st Avenue",
+   "lat": 40.731251,
+   "lon": -73.982309
+  },
+  "6563": {
+   "name": "Third Avenue At 13th Street",
+   "lat": 40.733157,
+   "lon": -73.987323
+  },
+  "6564": {
+   "name": "14th St At Irving Place EB",
+   "lat": 40.734208156,
+   "lon": -73.989395416
+  },
+  "6566": {
+   "name": "First Avenue At 17th Street",
+   "lat": 40.73313,
+   "lon": -73.981222
+  },
+  "6567": {
+   "name": "First Avenue At 24th Street",
+   "lat": 40.737082,
+   "lon": -73.978343
+  },
+  "6568": {
+   "name": "First Avenue At 26th Street",
+   "lat": 40.738911,
+   "lon": -73.977014
+  },
+  "6570": {
+   "name": "Lexington Avenue At 31st Street",
+   "lat": 40.744396,
+   "lon": -73.981222
+  },
+  "6571": {
+   "name": "Gramercy Green",
+   "lat": 40.739329,
+   "lon": -73.982831
+  },
+  "6572": {
+   "name": "Third Avenue At 17th Street N",
+   "lat": 40.735426,
+   "lon": -73.985619
+  },
+  "6573": {
+   "name": "14th St At Irving Place WB",
+   "lat": 40.734116,
+   "lon": -73.989034
+  },
+  "6574": {
+   "name": "Third Avenue At 14th Street",
+   "lat": 40.733588,
+   "lon": -73.986889
+  },
+  "6575": {
+   "name": "Opposite Gramercy Green",
+   "lat": 40.739069,
+   "lon": -73.982951
+  },
+  "6576": {
+   "name": "Third Avenue At 30th Street",
+   "lat": 40.742775738,
+   "lon": -73.980241882
+  },
+  "6577": {
+   "name": "Morton & Greenwich",
+   "lat": 40.731424,
+   "lon": -74.007932
+  },
+  "6580": {
+   "name": "14th Street At Third Avenue",
+   "lat": 40.733102,
+   "lon": -73.986791
+  },
+  "7470": {
+   "name": "Permutter Cancer Center 160 E 34th St",
+   "lat": 40.745887,
+   "lon": -73.978563
+  },
+  "7473": {
+   "name": "Man Lobby Entrance 550 1st Ave",
+   "lat": 40.742886,
+   "lon": -73.974172
+  },
+  "7474": {
+   "name": "Admin 360 Park Avenue",
+   "lat": 40.741634,
+   "lon": -73.985225
+  },
+  "7475": {
+   "name": "Admin One Park Avenue",
+   "lat": 40.7461152,
+   "lon": -73.981906
+  },
+  "7494": {
+   "name": "Subway 4th Ave 53rd St.",
+   "lat": 40.644915,
+   "lon": -74.014311
+  },
+  "7495": {
+   "name": "Subway 4th Ave 59th St.",
+   "lat": 40.641215,
+   "lon": -74.018071
+  },
+  "7496": {
+   "name": "Admin Bldng 58th /2nd Ave EB",
+   "lat": 40.645294,
+   "lon": -74.022786
+  },
+  "8801": {
+   "name": "Cadman Plaza & Clark Street",
+   "lat": 40.696808,
+   "lon": -73.991254
+  },
+  "9296": {
+   "name": "Cleveland Pl & Spring St",
+   "lat": 40.722163,
+   "lon": -73.997112
+  },
+  "9298": {
+   "name": "Third Avenue At 11th Street (NB)",
+   "lat": 40.731519,
+   "lon": -73.988345
+  },
+  "9299": {
+   "name": "Third Avenue At 11th Street (SB)",
+   "lat": 40.731233,
+   "lon": -73.988729
+  },
+  "13109": {
+   "name": "Hospital 150 E55th st.",
+   "lat": 40.646939278,
+   "lon": -74.020947751
+  },
+  "13110": {
+   "name": "NYU Langone Health",
+   "lat": 40.741865,
+   "lon": -73.974879
+  },
+  "13111": {
+   "name": "Ferry 58th St.& Pier",
+   "lat": 40.646637,
+   "lon": -74.025521
+  },
+  "13117": {
+   "name": "Admin Bldng 58th /2nd Ave WB",
+   "lat": 40.645164,
+   "lon": -74.02262
+  },
+  "13118": {
+   "name": "Third Avenue At 17th Street S",
+   "lat": 40.735018,
+   "lon": -73.985978
+  },
+  "13121": {
+   "name": "34th St. & Penn Station EB",
+   "lat": 40.751045,
+   "lon": -73.990847
+  },
+  "13122": {
+   "name": "Herald Square 34th St. / 6th Ave EB",
+   "lat": 40.749454,
+   "lon": -73.987258
+  },
+  "13123": {
+   "name": "M 34th St/Park Ave EB",
+   "lat": 40.746832,
+   "lon": -73.980962
+  },
+  "13125": {
+   "name": "34th St. & 2nd Ave.",
+   "lat": 40.744805,
+   "lon": -73.976156
+  },
+  "13128": {
+   "name": "34th St. & Park Ave. WB",
+   "lat": 40.746996,
+   "lon": -73.981016
+  },
+  "13129": {
+   "name": "Herald Square 34th St. / 6th Ave. WB",
+   "lat": 40.750004,
+   "lon": -73.988156
+  },
+  "13131": {
+   "name": "8th Ave. & 41st St.",
+   "lat": 40.756185,
+   "lon": -73.990486
+  },
+  "13138": {
+   "name": "E River Term",
+   "lat": 40.743865,
+   "lon": -73.970701
+  },
+  "13139": {
+   "name": "Brooklyn Term",
+   "lat": 40.646526,
+   "lon": -74.026587
+  },
+  "70676": {
+   "name": "Port Authority 8th Ave",
+   "lat": 40.756185,
+   "lon": -73.990486
+  },
+  "70677": {
+   "name": "ACC 240 E. 38th Street WB",
+   "lat": 40.747569,
+   "lon": -73.974733
+  },
+  "70678": {
+   "name": "LOC 333 E. 38th Street",
+   "lat": 40.746532,
+   "lon": -73.972277
+  },
+  "70679": {
+   "name": "Grand Central Station 42nd St/Park Avenue",
+   "lat": 40.752404,
+   "lon": -73.97835
+  },
+  "70681": {
+   "name": "34th Street & Penn Station WB",
+   "lat": 40.751287,
+   "lon": -73.991189
+  },
+  "150435": {
+   "name": "NYU Lagone Hospital",
+   "lat": 40.6907073,
+   "lon": -73.996395627
+  },
+  "150436": {
+   "name": "Bergen Street Station",
+   "lat": 40.687059323,
+   "lon": -73.99016694
+  },
+  "150437": {
+   "name": "Borough Hall Station",
+   "lat": 40.692540722,
+   "lon": -73.990435335
+  },
+  "150438": {
+   "name": "Icon Parking Garage",
+   "lat": 40.69112,
+   "lon": -73.9899
+  }
+ }
+}

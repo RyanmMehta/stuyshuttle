@@ -72,16 +72,17 @@ export async function getRoutes() {
     .map((r) => ({ id: String(r.myid), name: r.name, shortName: r.shortName || null, color: r.color, outdated: r.outdated === '1' }));
 }
 
-/** Per-route ordered stop sequences (routeId → [{position, stopId}]); ids change, so refresh daily. */
+/** Per-route ordered stop sequences + geometry + stops; ids change, so refresh daily. */
 export async function getStopSequences() {
   const raw = await post('/mapGetData.php?getStops=2', { s0: SYSTEM_ID, sA: 1 });
-  const sequences = {};
+  const sequences = {}, routePoints = {};
   for (const [routeId, entry] of Object.entries(raw.routes || {})) {
     sequences[routeId] = entry.slice(2).map(([position, stopId]) => ({ position: String(position), stopId: String(stopId) }));
   }
+  for (const [routeId, segs] of Object.entries(raw.routePoints || {})) routePoints[routeId] = segs;
   const stops = {};
-  for (const s of Object.values(raw.stops || {})) stops[s.stopId] = { id: s.stopId, name: s.name, lat: s.latitude, lon: s.longitude };
-  return { sequences, stops };
+  for (const s of Object.values(raw.stops || {})) stops[s.stopId] = { id: s.stopId, name: s.name, lat: +s.latitude, lon: +s.longitude };
+  return { sequences, stops, routePoints };
 }
 
 // ---------------------------------------------------------------------------
@@ -294,6 +295,10 @@ export function normalizeEta(raw, stopId, now = Date.now()) {
           : Number.isFinite(+e.secondsSpent) && +e.secondsSpent > 0 && +e.secondsSpent < 86400 ? now + +e.secondsSpent * 1000
           : addMinutes(now, parseEtaText(e.eta));
         if (at === null || !Number.isFinite(at)) return null;
+        // When Passio last recomputed this "solid" (schedule-anchored) estimate.
+        // A stale updatedAt is how we tell a lingering guess from a fresh one.
+        const updatedAt = e.solidEta?.updatedUtc ? Date.parse(e.solidEta.updatedUtc.replace(' ', 'T') + 'Z')
+          : e.solidEta?.updated ? parseNy(e.solidEta.updated) : null;
         const err = Array.isArray(e.error) && e.error.length ? String(e.error[0]) : null;
         const loadPct = /^(\d+)%$/.exec(String(e.paxLoadS || ''));
         return {
@@ -309,6 +314,8 @@ export function normalizeEta(raw, stopId, now = Date.now()) {
           stopsAway: Number.isFinite(+e.stopsAmount) ? +e.stopsAmount : null,
           distanceText: e.distance && e.distance !== '0mi' ? String(e.distance) : null,
           loadPct: loadPct ? +loadPct[1] : null,
+          solid: e.solid === 1 || e.solid === '1',
+          updatedAt,
         };
       })
       .filter(Boolean)

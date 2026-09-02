@@ -27,6 +27,7 @@
  */
 import { buildPushRequest } from './webpush.js';
 import { htmlToText, isRelevantAlert } from '../../js/text.js';
+import { trustworthyArrivals } from '../../js/geo.js';
 
 const PASSIO = 'https://passiogo.com';
 const SYSTEM_ID = '1007';
@@ -175,6 +176,8 @@ async function runCheck(env, { trace = false } = {}) {
   // 2) Divergence from the timetable, mornings only.
   if (!morning) return summary;
   const passio = await passioDirectory(env);
+  const vehicles = await fetchVehicles().catch(() => []);
+  const ROUTE_NAME_BY_KEY = ROUTE_NAMES;
   for (const { key, record } of subs) {
     const p = record.prefs || {};
     // Route IDs change between semesters; prefs carry the route LETTER and the
@@ -185,7 +188,9 @@ async function runCheck(env, { trace = false } = {}) {
     const position = passio.positions[routeId]?.[String(p.stopId)] || p.position || '1';
     const note = await evaluateStop({
       routeId, stopId: String(p.stopId), position,
-      walk: Number(p.walkToStop ?? 4), buffer: Number(p.buffer ?? 3), ny,
+      walk: Number(p.walkToStop ?? 4), buffer: Number(p.buffer ?? 3), ny, vehicles,
+      sequence: passio.sequences?.[routeId] || [], stops: passio.stops || {},
+      routeName: routeKey ? ROUTE_NAME_BY_KEY[routeKey] : null,
     }).catch(() => null);
     if (!note) continue;
 
@@ -219,12 +224,15 @@ async function passioDirectory(env) {
     const hit = (routes || []).find((r) => r.userId === SYSTEM_ID && String(r.name || '').trim().toLowerCase() === name.toLowerCase());
     if (hit) ids[k] = String(hit.myid);
   }
-  const positions = {};
+  const positions = {}, sequences = {};
   for (const [routeId, entry] of Object.entries(stops?.routes || {})) {
     positions[routeId] = {};
+    sequences[routeId] = entry.slice(2).map(([pos, stopId]) => ({ position: String(pos), stopId: String(stopId) }));
     for (const [pos, stopId] of entry.slice(2)) if (!positions[routeId][String(stopId)]) positions[routeId][String(stopId)] = String(pos);
   }
-  const dir = { day: today, ids, positions };
+  const stopMap = {};
+  for (const st of Object.values(stops?.stops || {})) stopMap[st.stopId] = { id: st.stopId, name: st.name, lat: +st.latitude, lon: +st.longitude };
+  const dir = { day: today, ids, positions, sequences, stops: stopMap };
   await env.SUBS.put(PASSIO_KEY, JSON.stringify(dir));
   return dir;
 }
@@ -270,7 +278,7 @@ async function relayNewAlerts(env, subs) {
 }
 
 /** Decide whether anything about the next departure is worth an interruption. */
-async function evaluateStop({ routeId, stopId, position, walk, buffer, ny }) {
+async function evaluateStop({ routeId, stopId, position, walk, buffer, ny, vehicles = [], sequence = [], stops = {}, routeName = null }) {
   const eta = await fetchEta(stopId, routeId, position);
   if (!eta || eta.outOfService) return null;
 
@@ -282,14 +290,20 @@ async function evaluateStop({ routeId, stopId, position, walk, buffer, ny }) {
   const leaveIn = scheduled - walk - buffer - nowMin;
   if (leaveIn > EXPECT_TRACKING_MIN || leaveIn < -10) return null;
 
-  if (eta.liveMinutes !== null) {
-    const lateBy = Math.round(eta.liveMinutes - (scheduled - nowMin));
+  // GPS-validate: drop ETAs for buses that already passed or were reassigned,
+  // so we never push "running late" (or a leave-now) about a phantom bus.
+  const now = Date.now();
+  const trusted = trustworthyArrivals(eta.arrivals || [], { vehicles, sequence, stops, targetStopId: stopId, routeName, now });
+  const liveMinutes = trusted.length ? Math.max(0, Math.round((trusted[0].arrivalAt - now) / 60000)) : null;
+
+  if (liveMinutes !== null) {
+    const lateBy = Math.round(liveMinutes - (scheduled - nowMin));
     if (lateBy >= LATE_THRESHOLD_MIN) {
       return {
         dedupe: `late:${scheduled}:${Math.floor(lateBy / 2)}`,
         payload: {
           title: `Shuttle running ${lateBy} min late`,
-          body: `The ${fmt(scheduled)} is now about ${eta.liveMinutes} min out. Leave around ${fmt(nowMin + eta.liveMinutes - walk - buffer)}.`,
+          body: `The ${fmt(scheduled)} is now about ${liveMinutes} min out. Leave around ${fmt(nowMin + liveMinutes - walk - buffer)}.`,
           tag: 'late',
         },
       };
@@ -319,23 +333,39 @@ async function fetchEta(stopId, routeId, position) {
   const raw = await (await fetch(url)).json();
   const etas = raw?.ETAs || {};
   const live = etas[stopId];
-  let liveMinutes = null;
+  const now = Date.now();
+  const arrivals = [];
   if (Array.isArray(live)) {
     for (const e of live) {
       if (e.OOS) continue;
-      if (Array.isArray(e.error) && /no valid gps|detour|yard/i.test(String(e.error[0]))) continue;
-      const mins = e.arrivalTimestamp
-        ? Math.round((e.arrivalTimestamp * 1000 - Date.now()) / 60000)
-        : parseEtaText(e.eta);
-      if (mins !== null && (liveMinutes === null || mins < liveMinutes)) liveMinutes = mins;
+      const err = Array.isArray(e.error) && e.error.length ? String(e.error[0]) : null;
+      const at = e.arrivalTimestamp ? e.arrivalTimestamp * 1000
+        : Number.isFinite(+e.secondsSpent) && +e.secondsSpent > 0 ? now + +e.secondsSpent * 1000
+        : (parseEtaText(e.eta) !== null ? now + parseEtaText(e.eta) * 60000 : null);
+      if (at === null) continue;
+      arrivals.push({ arrivalAt: at, vehicle: e.busName || null, error: err,
+        lowConfidence: Boolean(err && /no valid gps|detour|yard/i.test(err)),
+        updatedAt: e.solidEta?.updatedUtc ? Date.parse(e.solidEta.updatedUtc.replace(' ', 'T') + 'Z') : null });
     }
   }
   const fallback = etas['0000']?.[0];
   return {
-    liveMinutes,
+    arrivals,
     scheduleTimes: fallback?.scheduleTimes || live?.[0]?.scheduleTimes || [],
     outOfService: fallback?.outOfService === true,
   };
+}
+
+async function fetchVehicles() {
+  const res = await fetch(`${PASSIO}/mapGetData.php?getBuses=1&deviceId=${DEVICE_ID}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ s0: SYSTEM_ID, sA: 1 }),
+  });
+  const raw = await res.json();
+  const out = [];
+  for (const list of Object.values(raw.buses || {})) for (const b of list) {
+    out.push({ name: b.busName || b.bus, routeName: b.route, lat: +b.latitude, lon: +b.longitude, outOfService: b.outOfService === 1 });
+  }
+  return out;
 }
 
 async function fetchAlerts() {
