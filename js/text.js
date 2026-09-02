@@ -34,7 +34,10 @@ export function htmlToText(html) {
  * deliberately conservative: an alert is "other service" only if it mentions a
  * service we never use AND nothing we do use. Ambiguous stays relevant.
  */
-const OTHER_SERVICES = /\b(ferry|langone|cobble hill|brooklyn|metrotech|commuter shuttle|\bbat\b)/i;
+// Routes A, B, G and W are NYU shuttles too, but none of them touches Stuytown
+// or serves this trip — a "Route B running late" alert is noise here. Any alert
+// that ALSO names one of our routes (or "all routes") stays relevant.
+const OTHER_SERVICES = /\b(ferry|langone|cobble hill|brooklyn|metrotech|commuter shuttle|route [abgw]\b|\bbat\b)/i;
 const OUR_SERVICES = /\b(route [cef]\b|stuyvesant|stuytown|washington square|14th|avenue [abc]|715 broadway|all colleges|all routes|all shuttle|shuttle service)/i;
 
 export function isRelevantAlert(text) {

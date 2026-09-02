@@ -6,7 +6,7 @@
  *     Opening the app on the subway must still show the correct schedule.
  *   - Passio API calls: never cached here (app.js handles its own fallback).
  */
-const VERSION = 'stuyshuttle-v11';
+const VERSION = 'stuyshuttle-v12';
 const SHELL = [
   './',
   './index.html',

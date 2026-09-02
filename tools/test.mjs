@@ -161,6 +161,10 @@ ok('ferry alert is "other"', isRelevantAlert('NYU Langone Health Ferry 9/2 boat 
 ok('system-wide alert is relevant', isRelevantAlert('NYU Shuttle Service Resumes September 2') === true);
 ok('ambiguous stays relevant', isRelevantAlert('Delays expected this afternoon') === true);
 ok('mentions our route despite ferry → relevant', isRelevantAlert('Route C detour; use the ferry') === true);
+ok('Route B delay (real 9/2 alert) → other', isRelevantAlert('Route B 10:20am trip running 5 to 7 minutes behind schedule due to traffic') === false);
+ok('Route B AND Route C → relevant', isRelevantAlert('Route B and Route C delayed by traffic') === true);
+ok('"all routes" → relevant', isRelevantAlert('All routes suspended due to weather') === true);
+ok('Route E delay → relevant', isRelevantAlert('Route E 5:40pm trip running late') === true);
 
 console.log('\n== calendar alarms only on service days ==');
 const ev = buildLeaveEvents({ snapshot: snap, routeId: '74771', stopId: '6556', walkToStop: 4, buffer: 3, rideMinutes: 17, walkToBuilding: 7, destinationName: 'Stern', onlyDepartures: ['8:00 AM'], weeks: 2, from: new Date(WED) });
