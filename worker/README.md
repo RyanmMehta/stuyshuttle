@@ -1,6 +1,9 @@
 # StuyShuttle push worker
 
-Optional. The app is fully functional without it.
+Deployed for this copy of the app at
+`https://stuyshuttle-push.rm6886.workers.dev` (Cloudflare account of the
+repo owner; KV namespace `SUBS`). See the main README. The app is fully
+functional without it — it's the notification channel, not the alarm.
 
 This does **not** send "leave now" reminders — the calendar feed does that, and
 does it more reliably than iOS will ever deliver a web push. This exists for the
@@ -42,14 +45,14 @@ npx wrangler kv namespace create SUBS
 node gen-vapid.mjs
 ```
 
-**3. Store the private key as a secret**, and set the public key:
+**3. Store all three VAPID values as secrets** (the subject is a `mailto:`
+contact address; keeping it a secret keeps your email out of the public repo):
 
 ```bash
 npx wrangler secret put VAPID_PRIVATE_KEY
 npx wrangler secret put VAPID_PUBLIC_KEY
+npx wrangler secret put VAPID_SUBJECT
 ```
-
-Also set `VAPID_SUBJECT` in `wrangler.toml` to your own `mailto:` address.
 
 **4. Deploy:**
 

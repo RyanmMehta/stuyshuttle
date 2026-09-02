@@ -8,8 +8,8 @@
  */
 
 // Set these after deploying the worker (see worker/README).
-export const PUSH_ENDPOINT = '';     // e.g. 'https://stuyshuttle-push.you.workers.dev'
-export const VAPID_PUBLIC_KEY = '';  // output of `node worker/gen-vapid.mjs`
+export const PUSH_ENDPOINT = 'https://stuyshuttle-push.rm6886.workers.dev';
+export const VAPID_PUBLIC_KEY = 'BCtYjs7cZpvO-1ChP0jvpbBbiFQZXAsGIAJPLdHvH0P9icUT9QiYeY3tKJWJV_BkE88PpBm0WoNzC1xGkaqDXsQ';  // public half of the worker's VAPID keypair (safe to publish)
 
 export function pushConfigured() {
   return Boolean(PUSH_ENDPOINT && VAPID_PUBLIC_KEY);

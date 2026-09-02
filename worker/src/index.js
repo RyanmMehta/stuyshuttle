@@ -110,12 +110,13 @@ function checkWindow(now = new Date()) {
 
 async function runCheck(env) {
   const subs = await loadSubscribers(env);
-  if (!subs.length) return;
-
   const { ny, morning } = checkWindow();
 
-  // 1) New alerts, at any hour.
+  // 1) New alerts, at any hour. Runs even with no subscribers so the
+  //    "seen" list stays current: whoever enables notifications first gets
+  //    only alerts posted from then on, not today's backlog.
   await relayNewAlerts(env, subs);
+  if (!subs.length) return;
 
   // 2) Divergence from the timetable, mornings only.
   if (!morning) return;
@@ -144,6 +145,7 @@ async function relayNewAlerts(env, subs) {
   if (!fresh.length) return;
 
   for (const a of fresh) {
+    if (!subs.length) break; // nothing to deliver to; still record as seen below
     for (const { key, record } of subs) {
       const wantsAll = record.prefs?.notifyOtherServices === true;
       if (!a.relevant && !wantsAll) continue;

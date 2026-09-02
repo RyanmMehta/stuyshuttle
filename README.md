@@ -160,11 +160,13 @@ for 16 weeks; iOS fires these on time, offline, every time. There's also a
 subscribable `leave-times.ics` (Calendar → Add Subscription Calendar) that
 updates itself when you re-bake and push.
 
-**Notifications.** The worker in [`worker/`](worker/) relays NYU alerts the
-minute they're posted and warns if your bus is late or never starts tracking.
-On iPhone it only works after Add to Home Screen, and Apple can delay delivery —
-so it's the disruption channel; the calendar is the alarm. Setup:
-[`worker/README.md`](worker/README.md).
+**Notifications — on.** The worker in [`worker/`](worker/) is deployed to
+Cloudflare (free tier). It relays NYU alerts the minute they're posted and, on
+weekday mornings, warns if your bus is running 3+ minutes late or never starts
+tracking. To receive them on iPhone: add the app to your Home Screen, open it
+*from there*, then Alerts → **Enable Notifications**. Apple can delay
+background delivery, so this is the disruption channel; the calendar is the
+alarm. Details: [`worker/README.md`](worker/README.md).
 
 ### Tuning
 

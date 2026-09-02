@@ -15,7 +15,6 @@ crons = ["* * * * *"]
 
 [[kv_namespaces]]
 binding = "SUBS"
-id = "REPLACE_WITH_YOUR_KV_ID"
+id = "c17ffc787e4148c689f2dadd9aa0d50d"
 
-[vars]
-VAPID_SUBJECT = "mailto:you@nyu.edu"
+# VAPID_SUBJECT, VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY are wrangler secrets.
