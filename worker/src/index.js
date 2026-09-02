@@ -37,6 +37,8 @@ const HEARTBEAT_KEY = 'cron:heartbeat';   // written at most every 10 min (KV fr
 
 const LATE_THRESHOLD_MIN = 3;      // push when the bus is this late
 const EXPECT_TRACKING_MIN = 12;    // within this many minutes of departure we expect a bus
+const PASSIO_KEY = 'passio:routes'; // daily cache of route ids (by name) + stop positions
+const ROUTE_NAMES = { C: 'Route C', E: 'Route E', W: 'Route W', F: 'Route F' };
 
 const cors = () => ({
   'Access-Control-Allow-Origin': '*',
@@ -119,9 +121,11 @@ export default {
         readIndex(env), env.SUBS.get(SEEN_KEY), env.SUBS.get(HEARTBEAT_KEY),
       ]);
       let seen = 0; try { seen = JSON.parse(seenRaw || '[]').length; } catch { /* ignore */ }
+      let routeIds = null;
+      try { routeIds = JSON.parse((await env.SUBS.get(PASSIO_KEY)) || 'null')?.ids || null; } catch { /* ignore */ }
       return json({
         ok: true, subscribers: index.length, seenAlerts: seen,
-        lastCron: heartbeat || null, window: checkWindow(),
+        lastCron: heartbeat || null, routeIds, window: checkWindow(),
       });
     }
 
@@ -170,11 +174,17 @@ async function runCheck(env, { trace = false } = {}) {
 
   // 2) Divergence from the timetable, mornings only.
   if (!morning) return summary;
+  const passio = await passioDirectory(env);
   for (const { key, record } of subs) {
     const p = record.prefs || {};
-    if (!p.routeId || !p.stopId) continue;
+    // Route IDs change between semesters; prefs carry the route LETTER and the
+    // stop, and we resolve today's id + the stop's position on it here.
+    const routeKey = p.routeKey || null;
+    const routeId = routeKey ? passio.ids[routeKey] : (p.routeId ? String(p.routeId) : null);
+    if (!routeId || !p.stopId) continue;
+    const position = passio.positions[routeId]?.[String(p.stopId)] || p.position || '1';
     const note = await evaluateStop({
-      routeId: String(p.routeId), stopId: String(p.stopId), position: p.position || '1',
+      routeId, stopId: String(p.stopId), position,
       walk: Number(p.walkToStop ?? 4), buffer: Number(p.buffer ?? 3), ny,
     }).catch(() => null);
     if (!note) continue;
@@ -185,6 +195,38 @@ async function runCheck(env, { trace = false } = {}) {
     if (await sendOne(env, record.subscription, note.payload, key)) summary.pushed++;
   }
   return summary;
+}
+
+/**
+ * Today's Passio route ids (by name) and per-route stop positions, cached in
+ * KV for a day. One extra write per day, and subscribers never go stale when
+ * NYU re-creates a route under a new id.
+ */
+async function passioDirectory(env) {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const cached = JSON.parse((await env.SUBS.get(PASSIO_KEY)) || 'null');
+    if (cached?.day === today) return cached;
+  } catch { /* refetch */ }
+  const [routesRes, stopsRes] = await Promise.all([
+    fetch(`${PASSIO}/mapGetData.php?getRoutes=1&deviceId=${DEVICE_ID}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemSelected0: SYSTEM_ID, amount: 1 }) }),
+    fetch(`${PASSIO}/mapGetData.php?getStops=2&deviceId=${DEVICE_ID}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ s0: SYSTEM_ID, sA: 1 }) }),
+  ]);
+  const routes = await routesRes.json();
+  const stops = await stopsRes.json();
+  const ids = {};
+  for (const [k, name] of Object.entries(ROUTE_NAMES)) {
+    const hit = (routes || []).find((r) => r.userId === SYSTEM_ID && String(r.name || '').trim().toLowerCase() === name.toLowerCase());
+    if (hit) ids[k] = String(hit.myid);
+  }
+  const positions = {};
+  for (const [routeId, entry] of Object.entries(stops?.routes || {})) {
+    positions[routeId] = {};
+    for (const [pos, stopId] of entry.slice(2)) if (!positions[routeId][String(stopId)]) positions[routeId][String(stopId)] = String(pos);
+  }
+  const dir = { day: today, ids, positions };
+  await env.SUBS.put(PASSIO_KEY, JSON.stringify(dir));
+  return dir;
 }
 
 /** Liveness marker for /status, written at most every 10 minutes. */

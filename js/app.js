@@ -1,31 +1,27 @@
 /**
  * StuyShuttle — controller.
  *
- * Boot order is deliberate: render *instantly* from whatever we already have
- * (cached last-good data, else the baked timetable), then start live polling
- * at Passio's own cadence, then quietly re-check the timetable against NYU in
- * the background. At no point is the screen blank or spinning.
+ * Boot: render instantly from the baked data, then start live polling at
+ * Passio's own cadence, then refresh route ids / stop sequences in the
+ * background once a day (Passio re-creates routes under new ids between
+ * semesters). The screen is never blank and never spinning.
  */
 import * as api from './api.js';
 import { Poller, installGlobalGuards, fmtAge } from './live.js';
 import { h, el, icon, toast, fmtTime } from './ui.js';
-import {
-  ROUTES, HOME_STOPS, MIN, buildDepartures, planTrip, heroFor, rideMinutesBetween, servesOn,
-} from './schedule.js';
-import {
-  loadPrefs, savePrefs, cacheResponse, readCache, loadTimetableOverlay, saveTimetableOverlay,
-} from './store.js';
-import {
-  refreshRouteTimetable, probeServiceDays, mergeServiceDays, nextServiceDate, dayProbe,
-} from './timetable.js';
+import { MIN, explainNoService, minutesUntil } from './schedule.js';
+import { loadPrefs, savePrefs, cacheResponse, readCache, loadTimetableOverlay, saveTimetableOverlay } from './store.js';
+import { ROUTES, resolveRouteIds, dayTypeFor, tableFor, stopTimes, stopName, CAMPUS_STOP } from './routes.js';
+import { planOptions, chooseHero, upcomingRows, applyLive } from './planner.js';
 import { buildIcs, buildLeaveEvents } from './ics.js';
 import * as push from './push.js';
 import { renderTrip } from './views/trip.js';
 import { renderAlerts } from './views/alerts.js';
-import { renderRoutes } from './views/routes.js';
+import { renderTimetable } from './views/timetable.js';
 import { renderSettings } from './views/settings.js';
 
 const $ = (sel) => document.querySelector(sel);
+const TABS = ['trip', 'alerts', 'timetable', 'settings'];
 
 /** Testing hook: ?now=2026-09-02T07:45 pins the clock (New York wall time). */
 const TIME_OVERRIDE = (() => {
@@ -51,132 +47,126 @@ const nowMs = () => Date.now() + (TIME_OVERRIDE ?? 0);
 const state = {
   prefs: loadPrefs(),
   tab: 'trip',
-  routeTab: 'C',
   direction: 'toCampus',
-  baked: null,
+  ui: { dayType: null },
+  baked: null,       // Passio snapshot: stops, sequences, routes, routeIds
+  official: null,    // NYU's published timetables (data/official.json)
   overlay: loadTimetableOverlay(),
   walk: null,
-  seed: null,
-  eta: null,
+  eta: null, etaFor: null,
   alerts: readCache('alerts') || [],
   vehicles: [],
   offline: !navigator.onLine,
   freshness: null,
   pushState: { status: 'off', busy: false, error: null },
   timetableStatus: { refreshing: false, lastRefreshAt: null, warnings: [] },
-  booted: false,
-  safeMode: false,
+  booted: false, safeMode: false,
 };
 
-/** Baked snapshot with the live-refreshed overlay layered on top. */
+/** Baked snapshot with daily-refreshed route ids / sequences layered on top. */
 function snapshot() {
-  const b = state.baked || { schedules: {}, serviceDays: {}, sequences: {}, stops: {}, routes: [] };
+  const b = state.baked || { sequences: {}, stops: {}, routes: [], routeIds: {} };
   const o = state.overlay || {};
   return {
     ...b,
-    schedules: { ...(b.schedules || {}), ...(o.schedules || {}) },
-    serviceDays: { ...(b.serviceDays || {}), ...(o.serviceDays || {}) },
+    routeIds: { ...(b.routeIds || {}), ...(o.routeIds || {}) },
+    sequences: { ...(b.sequences || {}), ...(o.sequences || {}) },
+    stops: { ...(b.stops || {}), ...(o.stops || {}) },
   };
 }
-
-function activeContext() {
-  const snap = snapshot();
-  if (state.direction === 'toCampus') {
-    const stop = HOME_STOPS.find((s) => s.id === state.prefs.homeStopId) || HOME_STOPS[0];
-    const route = ROUTES[stop.route];
-    const seq = snap.sequences?.[route.id] || [];
-    const position = seq.find((x) => x.stopId === stop.id)?.position || '1';
-    return { stop, route, position, dropoff: route.dropoff };
-  }
-  // Heading home: board Route E at 715 Broadway, get off at First Ave/17th.
-  const route = ROUTES.E;
-  const seq = snap.sequences?.[route.id] || [];
-  return {
-    stop: { id: '6545', name: '715 Broadway', route: 'E' },
-    route,
-    position: seq.find((x) => x.stopId === '6545')?.position || '1',
-    dropoff: '6566',
-  };
+const routeIdOf = (key) => snapshot().routeIds?.[key] || null;
+function positionOf(key, stopId) {
+  const seq = snapshot().sequences?.[routeIdOf(key)] || [];
+  return seq.find((x) => x.stopId === stopId)?.position || null;
 }
-
-function destinationName(dropoffStopId) {
-  if (state.direction === 'toCampus') {
-    return state.walk?.buildings?.[state.prefs.building]?.name || 'campus';
-  }
-  return HOME_STOPS.find((s) => s.id === dropoffStopId)?.name || 'Stuytown';
+/** Walk times with your personal overrides applied. */
+function effectiveWalk() {
+  const w = state.walk || {};
+  return { ...w, homeToStop: { ...(w.homeToStop || {}), ...(state.prefs.walkOverrides || {}) } };
+}
+function destinationName(alightId) {
+  if (state.direction === 'toCampus') return state.walk?.buildings?.[state.prefs.building]?.name || 'campus';
+  return stopName(alightId);
 }
 
 /** Everything the views need, computed once per render. */
 function derive(now) {
-  const snap = snapshot();
-  const { stop, route, position, dropoff } = activeContext();
-  const schedule = snap.schedules?.[route.id] || null;
-  const fallbackTimes = schedule?.stops?.find((s) => s.stopId === stop.id)?.times || [];
-  const servesToday = servesOn(snap.serviceDays, route.id, now);
-  const eta = state.safeMode ? null : state.eta;
+  const walk = effectiveWalk();
+  const options = state.safeMode ? [] : planOptions({ direction: state.direction, official: state.official, walk, prefs: state.prefs, now });
+  let rows = upcomingRows(options, 6, state.prefs.homeStopId);
+  let hero = chooseHero(options, now, state.prefs.homeStopId);
 
-  const result = buildDepartures({ eta, fallbackTimes, offline: state.offline, servesToday, now });
-  const ride = rideMinutesBetween(schedule, stop.id, dropoff, snap.sequences?.[route.id]);
+  // Live overlay for the bus we are polling (the hero's stop), and any row on the same route+stop.
+  const live = state.safeMode ? null : state.eta;
+  if (live && hero.trip && state.etaFor === `${hero.trip.route}:${hero.trip.stopId}`) {
+    const t = applyLive(hero.trip, live, now);
+    hero = t.missed ? { mode: 'missed', trip: t } : t.tight ? { mode: 'now', trip: t } : { mode: 'wait', trip: t, leaveIn: minutesUntil(t.leaveAt, now) };
+    rows = rows.map((r) => (r.route === hero.trip.route && r.stopId === hero.trip.stopId ? applyLive(r, live, now) : r));
+  }
+  // NYU's live system says the hero's route is out of service today → don't show its timetable as if running.
+  const outOfService = Boolean(live?.outOfService && hero.trip && state.etaFor?.startsWith(hero.trip.route + ':'));
+  if (outOfService) { hero = { mode: 'none', trip: null, outOfService: true }; rows = rows.filter((r) => r.route !== state.etaFor.split(':')[0]); }
 
-  const toCampus = state.direction === 'toCampus';
-  const walkToStop = toCampus
-    ? state.prefs.walkToStop
-    : state.walk?.stopToBuilding?.['6545']?.[state.prefs.building] ?? 7;
-  const walkToBuilding = toCampus
-    ? state.walk?.stopToBuilding?.[dropoff]?.[state.prefs.building] ?? 7
-    : state.walk?.homeToStop?.[dropoff] ?? 4;
-
-  const trips = result.departures.slice(0, 6).map((d) =>
-    planTrip({
-      departsAt: d.at, walkToStop, buffer: state.prefs.buffer,
-      rideMinutes: ride.minutes ?? 15, walkToBuilding, arrivalEstimated: ride.estimated,
-      now, vehicle: d.vehicle, live: d.live, stopsAway: d.stopsAway, late: d.late,
-      loadPct: d.loadPct, solid: d.solid,
-    }));
-  const hero = heroFor(trips, now);
+  const heroRoute = hero.trip ? ROUTES[hero.trip.route] : null;
+  const emptyWhy = (!hero.trip || hero.mode === 'none') ? emptyExplanation(now, outOfService) : null;
 
   return {
-    stop, route, position, dropoff, schedule, result, ride, trips, hero,
-    walkToStop, walkToBuilding, destName: destinationName(dropoff),
-    // Today's departures at this stop, best source first, for honest empty states.
-    todaysTimes: eta?.scheduleTimes?.length ? eta.scheduleTimes : fallbackTimes,
+    options, rows, hero, heroRoute, emptyWhy,
+    destName: destinationName(hero.trip?.alightId || (state.direction === 'toCampus' ? CAMPUS_STOP : state.prefs.homeAlightStopId || '6566')),
+    pollTarget: hero.trip ? { route: hero.trip.route, stopId: hero.trip.stopId } : null,
+    walkToStop: hero.trip?.walkToStop ?? state.prefs.walkToStop,
   };
+}
+
+function emptyExplanation(now, outOfService) {
+  const keys = (state.direction === 'toCampus' ? ['C', 'E', 'W'] : ['E', 'W']).filter((k) => dayTypeFor(k, now));
+  const key = keys[0] || (state.direction === 'toCampus' ? 'C' : 'E');
+  const stopId = state.direction === 'toCampus' ? (key === 'C' ? state.prefs.homeStopId : '6566') : CAMPUS_STOP;
+  const table = tableFor(state.official, key, now);
+  const serviceDays = Object.fromEntries(Object.values(ROUTES).map((r) => [r.key, [0, 1, 2, 3, 4, 5, 6].map((d) => Boolean(r.days[d]))]));
+  return explainNoService(new Date(now), state.direction, {
+    serviceDays, routeId: key, outOfService,
+    todaysTimes: table ? stopTimes(table, stopId, 'board', now) : [],
+    routeName: ROUTES[key].name, stopName: stopName(stopId),
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Live data
 // ---------------------------------------------------------------------------
 
+let lastPollTarget = null;
+
 const fast = new Poller({
-  intervalMs: 7000,               // Passio's own client polls every 7s
-  maxTickMs: 12000,
+  intervalMs: 7000, maxTickMs: 12000,
   onState: (s) => { state.freshness = s; renderTopbar(); },
   tick: async () => {
-    const { stop, route, position } = activeContext();
+    const target = derive(nowMs()).pollTarget;
+    lastPollTarget = target;
+    const routeId = target ? routeIdOf(target.route) : null;
+    const position = target ? positionOf(target.route, target.stopId) : null;
     const [eta, vehicles] = await Promise.all([
-      api.getEta(stop.id, route.id, position, TIME_OVERRIDE ? new Date(nowMs()) : null),
+      target && routeId && position ? api.getEta(target.stopId, routeId, position, TIME_OVERRIDE ? new Date(nowMs()) : null) : Promise.resolve(null),
       api.getVehicles().catch(() => state.vehicles),
     ]);
     state.eta = eta;
+    state.etaFor = target ? `${target.route}:${target.stopId}` : null;
     state.vehicles = vehicles;
     state.offline = false;
-    cacheResponse('eta:' + stop.id, eta);
     if (state.tab === 'trip') render();
   },
 });
 
 const slow = new Poller({
-  intervalMs: 30000,
-  maxTickMs: 12000,
+  intervalMs: 30000, maxTickMs: 12000,
   tick: async () => {
     const alerts = await api.getAlerts();
     const before = new Set(state.prefs.seenAlertIds || []);
     const fresh = alerts.filter((a) => !before.has(a.id));
     state.alerts = alerts;
     cacheResponse('alerts', alerts);
-    if (state.booted && fresh.length) {
-      const relevant = fresh.filter((a) => a.relevant !== false);
-      if (relevant.length) toast(`New NYU alert: ${relevant[0].title}`, 'warn', 5000);
+    if (state.booted && fresh.some((a) => a.relevant !== false)) {
+      toast(`New NYU alert: ${fresh.find((a) => a.relevant !== false).title}`, 'warn', 5000);
     }
     state.prefs = savePrefs({ seenAlertIds: [...new Set([...alerts.map((a) => a.id), ...before])].slice(0, 300) });
     updateBadge();
@@ -193,65 +183,32 @@ function updateBadge() {
 }
 
 // ---------------------------------------------------------------------------
-// Timetable self-refresh (the app re-checks NYU's schedule; no re-bake needed)
+// Daily: route ids + stop sequences (ids change between semesters)
 // ---------------------------------------------------------------------------
 
-function nyDateKey(ts = nowMs()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(ts));
-}
+const nyDateKey = (ts = nowMs()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(ts));
 
-async function refreshTimetable({ force = false } = {}) {
-  if (state.timetableStatus.refreshing || !state.baked) return;
+async function refreshDirectory({ force = false } = {}) {
+  if (state.timetableStatus.refreshing) return;
   const today = nyDateKey();
-  const overlay = state.overlay || { schedules: {}, serviceDays: {}, refreshedAt: {} };
-  const due = Object.values(ROUTES).filter((r) => force || overlay.refreshedAt?.[r.id] !== today);
-  if (!due.length) return;
-
+  const overlay = state.overlay || {};
+  if (!force && overlay.directoryDay === today) return;
   state.timetableStatus = { ...state.timetableStatus, refreshing: true };
-  if (state.tab !== 'trip') render();
-
-  const snap = snapshot();
   const warnings = [];
-  for (const r of due) {
-    try {
-      const serviceDays = snap.serviceDays?.[r.id];
-      const probeDay = nextServiceDate(serviceDays, new Date(nowMs()));
-      const { schedule, warnings: w, changed } = await refreshRouteTimetable({
-        routeId: r.id,
-        sequence: snap.sequences?.[r.id],
-        stopNames: Object.fromEntries(Object.values(snap.stops || {}).map((s) => [s.id, s.name])),
-        routeMeta: { name: r.name, color: r.color },
-        prev: snap.schedules?.[r.id] || null,
-        seed: state.seed,
-        when: dayProbe(probeDay),
-        delayMs: 150,
-      });
-      if (schedule) {
-        overlay.schedules[r.id] = schedule;
-        overlay.refreshedAt[r.id] = today;
-        if (changed && state.booted) toast(`${r.name} timetable updated from NYU`, 'info');
-      }
-      warnings.push(...w.map((x) => `${r.name}: ${x}`));
-
-      // Service days: re-probe weekly (7 calls per route).
-      const weekKey = `days:${r.id}`;
-      const lastProbe = overlay.refreshedAt?.[weekKey];
-      if (force || !lastProbe || Date.now() - Date.parse(lastProbe) > 7 * 86_400_000) {
-        const timed = schedule?.stops?.find((s) => s.times.length);
-        if (timed) {
-          const fresh = await probeServiceDays(r.id, timed.stopId, timed.position, { from: new Date(nowMs()), delayMs: 150 });
-          overlay.serviceDays[r.id] = mergeServiceDays(snap.serviceDays?.[r.id], fresh);
-          overlay.refreshedAt[weekKey] = new Date().toISOString();
-        }
-      }
-    } catch (err) {
-      warnings.push(`${r.name}: could not check (${err?.message || err})`);
-    }
+  try {
+    const [routes, seq] = await Promise.all([api.getRoutes(), api.getStopSequences()]);
+    const ids = resolveRouteIds(routes);
+    const prev = snapshot().routeIds;
+    for (const [k, id] of Object.entries(ids)) if (prev[k] && prev[k] !== id) warnings.push(`${ROUTES[k].name} moved to a new id (${prev[k]} → ${id})`);
+    overlay.routeIds = ids; overlay.sequences = seq.sequences; overlay.stops = seq.stops;
+    overlay.directoryDay = today;
+    state.overlay = overlay; saveTimetableOverlay(overlay);
+    if (warnings.length && state.booted) toast(warnings[0], 'warn', 5000);
+  } catch (err) {
+    warnings.push(`Could not refresh route directory (${err?.message || err})`);
   }
-  state.overlay = overlay;
-  saveTimetableOverlay(overlay);
   state.timetableStatus = { refreshing: false, lastRefreshAt: Date.now(), warnings };
-  render();
+  if (state.tab !== 'trip') render();
 }
 
 // ---------------------------------------------------------------------------
@@ -266,26 +223,24 @@ async function computePushState() {
   else status = (await push.currentSubscription().catch(() => null)) ? 'on' : 'off';
   state.pushState = { ...state.pushState, status };
 }
-
 function pushPrefs() {
-  const { stop, route, position } = activeContext();
+  const d = derive(nowMs());
+  const routeKey = d.pollTarget?.route || 'C';
+  const stopId = d.pollTarget?.stopId || state.prefs.homeStopId;
   return {
-    routeId: route.id, stopId: stop.id, position,
-    walkToStop: state.prefs.walkToStop, buffer: state.prefs.buffer,
-    notifyOtherServices: state.prefs.notifyOtherServices,
+    routeKey, stopId, position: positionOf(routeKey, stopId) || '1',
+    walkToStop: d.walkToStop, buffer: state.prefs.buffer, notifyOtherServices: state.prefs.notifyOtherServices,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Actions (what the views can do)
+// Actions
 // ---------------------------------------------------------------------------
 
 const actions = {
   setTab(tab) {
     state.tab = tab;
-    state.prefs = savePrefs({ tab });
     if (tab === 'alerts') {
-      // Reading the feed clears the badge.
       const ids = state.alerts.map((a) => a.id);
       state.prefs = savePrefs({ dismissedAlerts: [...new Set([...state.prefs.dismissedAlerts, ...ids])].slice(0, 300) });
       updateBadge();
@@ -295,74 +250,61 @@ const actions = {
   },
   setDirection(dir) {
     if (state.direction === dir) return;
-    state.direction = dir;
-    // A cached ETA's scheduleTimes are "future as of when it was fetched";
-    // that's fine within 2 minutes of real time, but meaningless when the
-    // clock is pinned for testing, so bypass it then.
-    state.eta = TIME_OVERRIDE ? null : readCache('eta:' + activeContext().stop.id, 2 * MIN) || null;
-    render();
-    fast.refreshNow();
+    state.direction = dir; state.eta = null; state.etaFor = null;
+    render(); fast.refreshNow();
   },
-  setRouteTab(key) { state.routeTab = key; render(); },
+  setDayType(dt) { state.ui.dayType = dt; render(); },
   refresh() { fast.refreshNow(); slow.refreshNow(); },
   savePrefs(patch) {
-    const stopChanged = patch.homeStopId && patch.homeStopId !== state.prefs.homeStopId;
     state.prefs = savePrefs(patch);
-    render();
-    if (stopChanged) { state.eta = null; fast.refreshNow(); }
-    // Keep the push service's copy of your prefs current.
-    if (state.pushState.status === 'on' && (stopChanged || 'walkToStop' in patch || 'buffer' in patch || 'notifyOtherServices' in patch)) {
-      push.subscribe(pushPrefs()).catch(() => {});
-    }
+    state.eta = null; state.etaFor = null;
+    render(); fast.refreshNow();
+    if (state.pushState.status === 'on') push.subscribe(pushPrefs()).catch(() => {});
   },
   dismissAlert(id) {
     state.prefs = savePrefs({ dismissedAlerts: [...state.prefs.dismissedAlerts, id] });
-    updateBadge();
-    render();
+    updateBadge(); render();
   },
-  refreshTimetable() { refreshTimetable({ force: true }); },
+  refreshTimetable() { refreshDirectory({ force: true }); },
   async subscribePush() {
-    state.pushState = { ...state.pushState, busy: true, error: null };
-    render();
-    try {
-      await push.subscribe(pushPrefs());
-      state.pushState = { status: 'on', busy: false, error: null };
-      toast('Notifications on', 'ok');
-    } catch (err) {
-      state.pushState = { ...state.pushState, busy: false, error: err?.message || 'Could not enable' };
-    }
+    state.pushState = { ...state.pushState, busy: true, error: null }; render();
+    try { await push.subscribe(pushPrefs()); state.pushState = { status: 'on', busy: false, error: null }; toast('Notifications on', 'ok'); }
+    catch (err) { state.pushState = { ...state.pushState, busy: false, error: err?.message || 'Could not enable' }; }
     render();
   },
   async unsubscribePush() {
-    state.pushState = { ...state.pushState, busy: true };
-    render();
+    state.pushState = { ...state.pushState, busy: true }; render();
     try { await push.unsubscribe(); } catch { /* ignore */ }
-    state.pushState = { status: 'off', busy: false, error: null };
-    render();
+    state.pushState = { status: 'off', busy: false, error: null }; render();
   },
   downloadCalendar() {
-    const d = derive(nowMs());
-    const chosen = state.prefs.usualDeparture;
+    const now = nowMs();
+    const d = derive(now);
+    const t = d.hero.trip || d.rows[0];
+    if (!t) { toast('Nothing to schedule right now', 'warn'); return; }
+    const key = t.route;
+    // Official times at the boarding stop, as a Passio-shaped schedule for the ICS builder.
+    const dayTypes = [...new Set(Object.values(ROUTES[key].days))];
+    const table = state.official?.routes?.[key]?.[dayTypes[0]];
+    const times = table ? stopTimes(table, t.stopId, 'board', now) : [];
+    const chosen = state.prefs.usualDeparture && times.includes(state.prefs.usualDeparture) ? state.prefs.usualDeparture : fmtTime(t.departsAt);
     const events = buildLeaveEvents({
-      snapshot: snapshot(), routeId: d.route.id, stopId: d.stop.id,
-      walkToStop: d.walkToStop, buffer: state.prefs.buffer,
-      rideMinutes: d.ride.minutes ?? 15, walkToBuilding: d.walkToBuilding,
-      destinationName: d.destName, onlyDepartures: [chosen], weeks: 16, from: new Date(nowMs()),
+      snapshot: { schedules: { [key]: { name: ROUTES[key].name, stops: [{ stopId: t.stopId, name: t.stopLabel, times }] } },
+        serviceDays: { [key]: [0, 1, 2, 3, 4, 5, 6].map((dd) => Boolean(ROUTES[key].days[dd])) } },
+      routeId: key, stopId: t.stopId, walkToStop: t.walkToStop, buffer: state.prefs.buffer,
+      rideMinutes: t.rideMin, walkToBuilding: t.walkToBuilding, destinationName: d.destName,
+      onlyDepartures: [chosen], weeks: 16, from: new Date(now),
     });
     if (!events.length) { toast('Nothing to schedule for that departure', 'warn'); return; }
-    const ics = buildIcs({ events, alarmMinutesBefore: 0, calendarName: `StuyShuttle — ${chosen} shuttle` });
+    const ics = buildIcs({ events, alarmMinutesBefore: 0, calendarName: `StuyShuttle — ${chosen} ${ROUTES[key].name}` });
     const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-    const a = document.createElement('a');
-    a.href = url; a.download = `stuyshuttle-${chosen.replace(/[:\s]/g, '')}.ics`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    const a = document.createElement('a'); a.href = url; a.download = `stuyshuttle-${key}-${chosen.replace(/[:\s]/g, '')}.ics`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
     toast(`${events.length} alarms ready — open the file and Add All`, 'ok', 4500);
   },
   resetApp() {
     if (!confirm('Reset StuyShuttle settings and cached data on this device?')) return;
-    try {
-      for (const k of Object.keys(localStorage)) if (k.startsWith('stuyshuttle.')) localStorage.removeItem(k);
-    } catch { /* ignore */ }
+    try { for (const k of Object.keys(localStorage)) if (k.startsWith('stuyshuttle.')) localStorage.removeItem(k); } catch { /* ignore */ }
     location.reload();
   },
 };
@@ -374,12 +316,11 @@ const actions = {
 function ctx() {
   const now = nowMs();
   return {
-    now, prefs: state.prefs, snapshot: snapshot(), walk: state.walk,
-    direction: state.direction, eta: state.safeMode ? null : state.eta,
+    now, prefs: state.prefs, snapshot: snapshot(), official: state.official, walk: effectiveWalk(),
+    direction: state.direction, eta: state.safeMode ? null : state.eta, etaFor: state.etaFor,
     alerts: state.alerts, vehicles: state.vehicles, offline: state.offline,
-    freshness: state.freshness, pushState: state.pushState,
-    timetableStatus: state.timetableStatus, ui: { routeTab: state.routeTab },
-    actions, derived: derive(now),
+    freshness: state.freshness, pushState: state.pushState, timetableStatus: state.timetableStatus,
+    ui: state.ui, actions, derived: derive(now), routeIdOf,
   };
 }
 
@@ -389,23 +330,24 @@ function render() {
   const scrollY = window.scrollY;
   try {
     const c = ctx();
-    const view =
-      state.tab === 'alerts' ? renderAlerts(c)
-      : state.tab === 'routes' ? renderRoutes(c)
+    const view = state.tab === 'alerts' ? renderAlerts(c)
+      : state.tab === 'timetable' ? renderTimetable(c)
       : state.tab === 'settings' ? renderSettings(c)
       : renderTrip(c);
     root.replaceChildren(view, renderFooter());
-    renderTopbar();
-    renderTabbar();
+    renderTopbar(); renderTabbar();
     window.scrollTo(0, scrollY);
+    // Poll the hero's stop when it changes (e.g. direction toggled, bus passed).
+    const target = c.derived.pollTarget;
+    const key = target ? `${target.route}:${target.stopId}` : null;
+    if (key && key !== state.etaFor && (!lastPollTarget || `${lastPollTarget.route}:${lastPollTarget.stopId}` !== key)) fast.refreshNow();
   } catch (err) {
     renderSafe(err);
   }
 }
 
 function renderTopbar() {
-  const bar = $('#status');
-  if (!bar) return;
+  const bar = $('#status'); if (!bar) return;
   const f = state.freshness;
   let level = 'starting', text = 'Connecting…';
   if (state.offline) { level = 'offline'; text = 'Offline'; }
@@ -421,18 +363,13 @@ function renderTopbar() {
 }
 
 function renderTabbar() {
-  const nav = $('#tabbar');
-  if (!nav) return;
+  const nav = $('#tabbar'); if (!nav) return;
   const unread = state.alerts.filter((a) => a.relevant !== false && !state.prefs.dismissedAlerts.includes(a.id)).length;
   const tab = (key, label, ic, count) =>
     h('button', { class: `tab ${state.tab === key ? 'is-active' : ''}`, onclick: () => actions.setTab(key), 'aria-current': state.tab === key ? 'page' : null },
       h('span', { class: 'tab__icon' }, icon(ic, 22), count ? h('span', { class: 'tab__count' }, count) : null),
       h('span', { class: 'tab__label' }, label));
-  nav.replaceChildren(
-    tab('trip', 'Trip', 'bus'),
-    tab('alerts', 'Alerts', 'bell', unread),
-    tab('routes', 'Routes', 'route'),
-    tab('settings', 'Settings', 'settings'));
+  nav.replaceChildren(tab('trip', 'Trip', 'bus'), tab('alerts', 'Alerts', 'bell', unread), tab('timetable', 'Times', 'clock'), tab('settings', 'Settings', 'settings'));
 }
 
 function renderFooter() {
@@ -443,25 +380,25 @@ function renderFooter() {
   return h('footer', { class: 'footer' }, bits.join(' · '));
 }
 
-/** Absolute fallback: plain DOM, baked data only, cannot depend on anything that just failed. */
+/** Absolute fallback: plain DOM, official timetable only. */
 function renderSafe(err) {
   console.error('render failed; entering safe mode', err);
   state.safeMode = true;
   const root = $('#app');
-  const snap = snapshot();
-  const { stop, route } = activeContext();
-  const times = snap.schedules?.[route.id]?.stops?.find((s) => s.stopId === stop.id)?.times || [];
-  root.replaceChildren(
-    el('section', 'hero hero--empty'),
-  );
-  const box = root.firstChild;
+  const now = nowMs();
+  const key = state.direction === 'toCampus' ? 'C' : 'E';
+  const table = tableFor(state.official, key, now);
+  const stopId = state.direction === 'toCampus' ? state.prefs.homeStopId : CAMPUS_STOP;
+  const times = table ? stopTimes(table, stopId, 'board', now) : [];
+  const box = el('section', 'hero hero--empty');
   box.append(el('div', 'hero__kicker', 'Timetable (safe mode)'));
-  box.append(el('div', 'hero__empty-title', `${route.name} from ${stop.name}`));
-  box.append(el('div', 'hero__arrive', times.length ? times.join('  ·  ') : 'No published times'));
-  box.append(el('div', 'muted small', 'Something went wrong rendering live data. This is the published timetable. Pull to refresh or reopen the app.'));
+  box.append(el('div', 'hero__empty-title', `${ROUTES[key].name} from ${stopName(stopId)}`));
+  box.append(el('div', 'hero__arrive', times.length ? times.join('  ·  ') : 'No published times today'));
+  box.append(el('div', 'muted small', 'Something went wrong rendering live data. This is the published timetable. Tap to try again.'));
   const btn = el('button', 'btn btn--secondary', 'Try again');
   btn.onclick = () => { state.safeMode = false; render(); };
   box.append(btn);
+  root.replaceChildren(box);
 }
 
 // ---------------------------------------------------------------------------
@@ -470,49 +407,30 @@ function renderSafe(err) {
 
 async function boot() {
   installGlobalGuards((err) => { toast('Recovered from an error', 'warn'); if (!state.safeMode) renderSafe(err); });
-
-  // Deep link from a notification: index.html#alerts
-  const applyHash = () => {
-    const t = location.hash.replace('#', '');
-    if (['trip', 'alerts', 'routes', 'settings'].includes(t)) { state.tab = t; render(); }
-  };
+  const applyHash = () => { const t = location.hash.replace('#', ''); if (TABS.includes(t)) { state.tab = t; render(); } };
   window.addEventListener('hashchange', applyHash);
 
   try {
-    const [baked, walk, seed] = await Promise.all([
-      api.getSnapshot(),
-      api.getWalkTimes(),
-      fetch('./data/seed-times.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    const [baked, official, walk] = await Promise.all([
+      api.getSnapshot(), fetch('./data/official.json', { cache: 'no-cache' }).then((r) => r.json()), api.getWalkTimes(),
     ]);
-    state.baked = baked; state.walk = walk; state.seed = seed;
+    state.baked = baked; state.official = official; state.walk = walk;
   } catch {
     $('#app').replaceChildren(el('div', 'booting', 'Could not load timetable data. Check your connection and reopen.'));
     return;
   }
 
-  state.tab = 'trip'; // always open on the answer; deep links (#alerts) still work
-  state.eta = TIME_OVERRIDE ? null : readCache('eta:' + activeContext().stop.id, 2 * MIN) || null;
+  state.tab = 'trip';
   applyHash();
-  render();                       // instant: cached/baked
+  render();
   await computePushState();
   render();
-
-  fast.start();
-  slow.start();
+  fast.start(); slow.start();
   state.booted = true;
-
-  // Countdown tick; cheap because rounding is to the minute.
   setInterval(() => { if (!document.hidden && state.tab === 'trip') render(); }, 10_000);
-
-  // Background: re-check the timetable against NYU once per day.
-  setTimeout(() => refreshTimetable().catch(() => {}), 2500);
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
+  setTimeout(() => refreshDirectory().catch(() => {}), 2500);
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// Debug/test handle: `__stuy.fast.refreshNow()`, `__stuy.state`, `__stuy.render()`.
-window.__stuy = { state, fast, slow, render, refreshTimetable, actions };
-
+window.__stuy = { state, fast, slow, render, refreshDirectory, actions, derive: () => derive(nowMs()) };
 boot();

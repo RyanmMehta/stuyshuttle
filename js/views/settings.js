@@ -1,6 +1,7 @@
 /** Settings: your stop, your building, your walk, and the two safety nets. */
 import { h, icon, fmtTime } from '../ui.js';
 import { HOME_STOPS } from '../schedule.js';
+import { stopName as stopLabel } from '../routes.js';
 
 export function renderSettings(ctx) {
   const { prefs, walk, snapshot, actions, pushState, derived, timetableStatus } = ctx;
@@ -15,9 +16,16 @@ export function renderSettings(ctx) {
     })),
     field('Destination', select(Object.entries(walk?.buildings || {}).map(([k, b]) => [k, b.name]), prefs.building,
       (v) => actions.savePrefs({ building: v }))),
-    field('Walk to stop', stepper(prefs.walkToStop, 0, 30, 'min', (v) => actions.savePrefs({ walkToStop: v }))),
+    field('Walk to my stop', stepper(prefs.walkToStop, 0, 30, 'min', (v) => actions.savePrefs({ walkToStop: v }))),
+    field('Coming home, get off at', select([['6566', '1st Ave at 17th St'], ['6567', '1st Ave at 24th St']], prefs.homeAlightStopId || '6566',
+      (v) => actions.savePrefs({ homeAlightStopId: v }))),
     field('Safety buffer', stepper(prefs.buffer, 0, 15, 'min', (v) => actions.savePrefs({ buffer: v }))),
-    h('p', { class: 'muted small' }, 'These two numbers are what make the countdown accurate. Walk it once, then correct them.')));
+    h('p', { class: 'muted small' }, 'Walk time and buffer are what make the countdown accurate. Walk it once, then correct them.'),
+    h('details', { class: 'sub' },
+      h('summary', { class: 'muted small' }, 'Walk times to the other stops the planner considers'),
+      Object.entries(walk?.homeToStop || {}).filter(([k]) => !k.startsWith('_')).map(([stopId, mins]) =>
+        field(stopLabel(stopId), stepper(prefs.walkOverrides?.[stopId] ?? mins, 0, 40, 'min',
+          (v) => actions.savePrefs({ walkOverrides: { ...(prefs.walkOverrides || {}), [stopId]: v } })))))));
 
   // --- Calendar alarms --------------------------------------------------------
   const times = derived.schedule?.stops?.find((s) => s.stopId === derived.stop.id)?.times || [];

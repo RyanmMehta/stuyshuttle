@@ -8,6 +8,7 @@ import {
 import { parseEtaText, normalizeEta } from '../js/api.js';
 import { htmlToText, isRelevantAlert } from '../js/text.js';
 import { buildLeaveEvents, buildIcs } from '../js/ics.js';
+import { ROUTES } from '../js/routes.js';
 
 const snap = JSON.parse(readFileSync(new URL('../data/timetable.json', import.meta.url)));
 const walk = JSON.parse(readFileSync(new URL('../data/walk.json', import.meta.url)));
@@ -118,8 +119,10 @@ check('tier live, on time vs the 10:30 timetable', [b4.tier, b4.departures[0].la
 check('null scheduleTimes in payload does not break the list', b4.departures.map((d) => fmtClock(d.at)), ['10:30 AM']);
 
 console.log('\n== ride time is never negative (loop-route trap) ==');
-const routeE = snap.schedules['72946'];
-const seqE = snap.sequences['72946'];
+// Route ids change between semesters — always look them up by name.
+const E_ID = snap.routeIds.E;
+const routeE = snap.schedules[E_ID];
+const seqE = snap.sequences[E_ID];
 const homeRide = rideMinutesBetween(routeE, '6545', '6566', seqE);
 ok('715 Bway -> First Ave 17th is positive and plausible', homeRide.minutes > 0 && homeRide.minutes < 40, `${homeRide.minutes} min`);
 
@@ -132,7 +135,11 @@ check('at 10:00 AM only 10:30 remains', buildDepartures({ eta: null, fallbackTim
 console.log('\n== service days (the Saturday/Friday trap) ==');
 const SD = snap.serviceDays;
 check('Route C runs Mon-Thu', serviceDayLabel(SD, '74771'), 'Mon–Thu');
-check('Route E runs Mon-Fri', serviceDayLabel(SD, '72946'), 'Mon–Fri');
+ok('snapshot resolved Route E by name to a fresh id', typeof E_ID === 'string' && E_ID !== '72946', E_ID);
+// Passio's service-day probe is unreliable whenever a live bus answers the
+// timeline query; the app takes day types from NYU's official sheets instead.
+check('Route E official days = Mon–Fri', Object.entries(ROUTES.E.days).map(([d]) => d).join(''), '12345');
+check('Route W official days = Sat–Sun', Object.entries(ROUTES.W.days).map(([d]) => d).join(''), '06');
 check('Route F runs Mon-Thu', serviceDayLabel(SD, '74772'), 'Mon–Thu');
 ok('C does NOT run Saturday', servesOn(SD, '74771', SAT) === false);
 ok('C does NOT run Friday', servesOn(SD, '74771', FRI) === false);

@@ -17,6 +17,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { refreshRouteTimetable, probeServiceDays, mergeServiceDays, nextServiceDate, dayProbe } from '../js/timetable.js';
 import { htmlToText, isRelevantAlert } from '../js/text.js';
+import { resolveRouteIds, ROUTES } from '../js/routes.js';
+import { fetchOfficial } from './sheets.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = `${ROOT}/data/timetable.json`;
@@ -26,8 +28,8 @@ const SYSTEM_ID = '1007';
 const DEVICE_ID = 'stuyshuttle-bake';
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// Routes that touch Stuytown or Washington Square.
-const ROUTES_OF_INTEREST = ['74771', '72946', '74772', '74774'];
+// Routes are resolved by NAME at bake time — Passio re-creates routes under
+// new IDs between semesters (Route E: 72946 → 74768 on 2026-09-02).
 
 async function post(path, body) {
   const res = await fetch(`${BASE}${path}&deviceId=${DEVICE_ID}`, {
@@ -73,10 +75,20 @@ const main = async () => {
   const seed = existsSync(SEED) ? JSON.parse(readFileSync(SEED, 'utf8')) : null;
 
   const [routes, { stops, sequences }, alerts] = await Promise.all([fetchRoutes(), fetchStopsAndSequences(), fetchAlerts()]);
-  console.log(`  routes ${routes.length} · stops ${Object.keys(stops).length} · alerts ${alerts.length}\n`);
+  console.log(`  routes ${routes.length} · stops ${Object.keys(stops).length} · alerts ${alerts.length}`);
   const stopNames = Object.fromEntries(Object.values(stops).map((s) => [s.id, s.name]));
+  const routeIds = resolveRouteIds(routes);
+  console.log(`  route ids by name: ${Object.entries(routeIds).map(([k, v]) => `${k}=${v}`).join(' ')}\n`);
+
+  console.log('Official timetables (nyu.edu Google Sheets):');
+  let official = null;
+  try { official = await fetchOfficial(stops, console.log); }
+  catch (err) { console.log(`  FAILED: ${err.message} — keeping data/official.json as is`); }
+  if (official) writeFileSync(`${ROOT}/data/official.json`, JSON.stringify(official, null, 1));
+  console.log();
 
   const schedules = {}, serviceDays = {}, warnings = [];
+  const ROUTES_OF_INTEREST = Object.values(ROUTES).map((r) => routeIds[r.key]).filter(Boolean);
   for (const routeId of ROUTES_OF_INTEREST) {
     const meta = routes.find((r) => r.id === routeId) || {};
     const prevDays = prev?.serviceDays?.[routeId];
@@ -101,7 +113,7 @@ const main = async () => {
     );
   }
 
-  const snapshot = { generatedAt: new Date().toISOString(), systemId: SYSTEM_ID, warnings, routes, stops, sequences, schedules, serviceDays, alerts };
+  const snapshot = { generatedAt: new Date().toISOString(), systemId: SYSTEM_ID, warnings, routeIds, routes, stops, sequences, schedules, serviceDays, alerts };
   mkdirSync(`${ROOT}/data`, { recursive: true });
   writeFileSync(OUT, JSON.stringify(snapshot, null, 2));
   console.log(`\nWrote data/timetable.json${warnings.length ? ` (${warnings.length} note(s))` : ''}`);

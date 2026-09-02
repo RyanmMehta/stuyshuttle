@@ -62,6 +62,29 @@ const post = (path, body) =>
 const get = (path) => request(`${BASE}${path}&deviceId=${DEVICE_ID}`);
 
 // ---------------------------------------------------------------------------
+// Routes (ids change between semesters — resolve by name; see routes.js)
+// ---------------------------------------------------------------------------
+
+export async function getRoutes() {
+  const raw = await post('/mapGetData.php?getRoutes=1', { systemSelected0: SYSTEM_ID, amount: 1 });
+  return (raw || [])
+    .filter((r) => String(r.userId) === SYSTEM_ID)
+    .map((r) => ({ id: String(r.myid), name: r.name, shortName: r.shortName || null, color: r.color, outdated: r.outdated === '1' }));
+}
+
+/** Per-route ordered stop sequences (routeId → [{position, stopId}]); ids change, so refresh daily. */
+export async function getStopSequences() {
+  const raw = await post('/mapGetData.php?getStops=2', { s0: SYSTEM_ID, sA: 1 });
+  const sequences = {};
+  for (const [routeId, entry] of Object.entries(raw.routes || {})) {
+    sequences[routeId] = entry.slice(2).map(([position, stopId]) => ({ position: String(position), stopId: String(stopId) }));
+  }
+  const stops = {};
+  for (const s of Object.values(raw.stops || {})) stops[s.stopId] = { id: s.stopId, name: s.name, lat: s.latitude, lon: s.longitude };
+  return { sequences, stops };
+}
+
+// ---------------------------------------------------------------------------
 // Vehicles
 // ---------------------------------------------------------------------------
 

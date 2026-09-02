@@ -312,3 +312,29 @@ details.card[open] > summary { margin-bottom: 10px; }
 .toast--warn { border-color: color-mix(in srgb, var(--sched) 50%, var(--line)); }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---- timetable ---------------------------------------------------------------- */
+.section-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .07em; margin: 18px 2px 10px; }
+.seg__today { margin-left: 6px; font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: 2px 5px; border-radius: 999px; background: rgba(255,255,255,.18); }
+.card--tt { padding: 12px 0 10px; overflow: hidden; }
+.tt__head { display: flex; align-items: center; gap: 10px; padding: 0 16px 10px; }
+.tt__title { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; }
+.tt__scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tt { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; font-size: 13.5px; min-width: 100%; }
+.tt th, .tt td { padding: 7px 12px; white-space: nowrap; text-align: left; border-bottom: 1px solid var(--line); }
+.tt th { position: sticky; top: 0; background: var(--surface); font-weight: 700; vertical-align: bottom; font-size: 12px; }
+.tt__stop { font-weight: 800; color: var(--text); }
+.tt__meta { font-weight: 600; color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+.tt__home .tt__stop { color: var(--accent); }
+.tt__alight .tt__stop { color: var(--live); }
+.tt__sticky { position: sticky; left: 0; background: var(--surface); z-index: 1; box-shadow: 1px 0 0 var(--line); }
+.tt__next td { background: color-mix(in srgb, var(--accent-strong) 16%, var(--surface)); font-weight: 800; }
+.tt__next td.tt__sticky { background: color-mix(in srgb, var(--accent-strong) 16%, var(--surface)); }
+.tt__past td { color: var(--muted); opacity: .55; }
+.card--tt > .muted { padding: 10px 16px 0; }
+.row__chip { margin-right: 8px; }
+.row__alt { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.row__walk { font-size: 12px; color: var(--muted); }
+details.sub > summary { cursor: pointer; padding: 8px 0; }
