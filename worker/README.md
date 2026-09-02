@@ -19,6 +19,15 @@ It notifies you when:
 
 Otherwise it stays quiet. A notifier that cries wolf is one you stop reading.
 
+## Why the push encoding is hand-rolled
+
+`src/webpush.js` implements RFC 8291 (`aes128gcm`) and RFC 8292
+(`Authorization: vapid t=…, k=…`) directly on WebCrypto. Apple's push service —
+i.e. every iPhone — accepts only those; the off-the-shelf library we started
+with emitted the pre-standard `aesgcm` / `WebPush …` forms that Chrome tolerates
+and Apple rejects. The implementation is checked against the RFC 8291
+Appendix A test vector in `tools/test-worker.mjs`.
+
 ## Cost
 
 Free. Cloudflare's free tier allows 100,000 requests/day and cron triggers; this

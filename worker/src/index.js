@@ -1,6 +1,9 @@
 /**
  * StuyShuttle push worker (Cloudflare Workers free tier).
  *
+ * Web Push is done by ./webpush.js (RFC 8291 aes128gcm + RFC 8292 VAPID) —
+ * the encodings Apple's push service requires. See that file for why.
+ *
  * Two jobs, both things a static timetable cannot do:
  *
  *   1. Relay NYU service alerts the moment they are posted — the same messages
@@ -22,7 +25,7 @@
  * in ONE index key and read it (reads are 100k/day) instead of listing, and
  * (b) write only when something actually changes.
  */
-import { buildPushPayload } from '@block65/webcrypto-web-push';
+import { buildPushRequest } from './webpush.js';
 import { htmlToText, isRelevantAlert } from '../../js/text.js';
 
 const PASSIO = 'https://passiogo.com';
@@ -97,14 +100,14 @@ export default {
       const body = await request.json().catch(() => null);
       if (!body?.subscription?.endpoint) return json({ error: 'bad subscription' }, 400);
       try {
-        const req = await buildPushPayload(
-          { data: { title: 'selftest', body: 'x', tag: 'selftest' }, options: { ttl: 60, urgency: 'high' } },
-          body.subscription, vapidKeys(env)
-        );
+        const req = await buildPushRequest({
+          subscription: body.subscription, data: { title: 'selftest', body: 'x', tag: 'selftest' },
+          vapid: vapidKeys(env), ttl: 60, urgency: 'high',
+        });
         return json({
           ok: true, headers: Object.keys(req.headers), bodyBytes: req.body.byteLength,
-          vapidSigned: /^WebPush /.test(req.headers.authorization || ''),
-          encoding: req.headers['content-encoding'], subject: (env.VAPID_SUBJECT || '').startsWith('mailto:'),
+          vapidSigned: /^vapid t=[^,]+, k=/.test(req.headers.Authorization || ''),
+          encoding: req.headers['Content-Encoding'], subject: (env.VAPID_SUBJECT || '').startsWith('mailto:'),
         });
       } catch (err) {
         return json({ ok: false, error: String(err?.message || err) }, 500);
@@ -369,12 +372,8 @@ async function loadSubscribers(env) {
 
 async function sendOne(env, subscription, payload, kvKey) {
   try {
-    const req = await buildPushPayload(
-      // Pass the object, not a JSON string, or the SW's e.data.json() returns a string.
-      { data: payload, options: { ttl: 900, urgency: 'high' } },
-      subscription,
-      vapidKeys(env)
-    );
+    // Pass the object, not a JSON string, or the SW's e.data.json() returns a string.
+    const req = await buildPushRequest({ subscription, data: payload, vapid: vapidKeys(env), ttl: 900, urgency: 'high' });
     const res = await fetch(subscription.endpoint, req);
     if (res.status === 404 || res.status === 410) { // browser dropped the subscription
       await env.SUBS.delete(kvKey);
