@@ -1,0 +1,14 @@
+{
+  "_comment": "Human-verified fallback times, used ONLY when the live API and the previous snapshot both return nothing for a stop. The live API always wins when it has data.",
+  "_why": "Passio intermittently drops a stop's schedule. First Avenue At 17th Street (Route E) is the Stuytown drop-off for the trip home, so losing it silently would break the homeward direction entirely.",
+  "_verifiedOn": "2026-09-01",
+  "_verifiedFrom": "passiogo.com schedule=4 and eta=3 responses, cross-checked between both endpoints",
+
+  "72946": {
+    "6566": {
+      "_name": "First Avenue At 17th Street",
+      "times": ["8:15 AM", "9:05 AM", "9:50 AM", "10:35 AM", "11:20 AM",
+                "5:00 PM", "5:50 PM", "6:40 PM", "7:30 PM", "8:25 PM"]
+    }
+  }
+}

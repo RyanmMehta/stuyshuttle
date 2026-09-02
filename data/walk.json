@@ -1,0 +1,56 @@
+{
+  "_comment": "Hand-verified walk times in MINUTES. Seeded from measured road distances at ~78 m/min. Correct these from real experience -- this is the single highest-value accuracy tuning in the app.",
+  "_verifiedOn": "2026-09-01",
+
+  "homeToStop": {
+    "_comment": "From your Stuytown apartment to each Route C stop. Seeded for the north end (near 20th St). Editable in Settings.",
+    "6556": 4,
+    "6557": 5,
+    "6558": 7,
+    "6559": 9,
+    "6560": 10,
+    "6561": 12,
+    "6562": 14,
+    "6566": 8
+  },
+
+  "stopToBuilding": {
+    "_comment": "From a drop-off stop to a campus building. 715 Broadway is the Route C terminus and by far the best drop-off for Stern.",
+    "6545": {
+      "_name": "715 Broadway",
+      "kmc": 7,
+      "tisch": 7,
+      "bobst": 8,
+      "kimmel": 9,
+      "silver": 6,
+      "stern": 7
+    },
+    "6563": {
+      "_name": "Third Avenue At 13th Street",
+      "kmc": 18,
+      "tisch": 18,
+      "bobst": 19,
+      "kimmel": 20,
+      "silver": 16,
+      "stern": 18
+    },
+    "6573": {
+      "_name": "14th St At Irving Place WB",
+      "kmc": 17,
+      "tisch": 17,
+      "bobst": 18,
+      "kimmel": 19,
+      "silver": 15,
+      "stern": 17
+    }
+  },
+
+  "buildings": {
+    "stern": { "name": "Stern — KMC", "address": "44 West 4th St", "lat": 40.72926, "lon": -73.99617 },
+    "kmc": { "name": "Kaufman Mgmt Center", "address": "44 West 4th St", "lat": 40.72926, "lon": -73.99617 },
+    "tisch": { "name": "Tisch Hall", "address": "40 West 4th St", "lat": 40.72938, "lon": -73.99584 },
+    "bobst": { "name": "Bobst Library", "address": "70 Washington Sq S", "lat": 40.72953, "lon": -73.99733 },
+    "kimmel": { "name": "Kimmel Center", "address": "60 Washington Sq S", "lat": 40.72966, "lon": -73.99684 },
+    "silver": { "name": "Silver Center", "address": "100 Washington Sq E", "lat": 40.73003, "lon": -73.99537 }
+  }
+}

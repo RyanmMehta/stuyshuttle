@@ -1,0 +1,1654 @@
+{
+  "generatedAt": "2026-09-02T03:22:17.809Z",
+  "systemId": "1007",
+  "warnings": [
+    "Route W: no times at all; kept previous schedule"
+  ],
+  "routes": [
+    {
+      "id": "74769",
+      "name": "Route A",
+      "shortName": "A",
+      "color": "#f7b6d2"
+    },
+    {
+      "id": "74770",
+      "name": "Route B",
+      "shortName": "B",
+      "color": "#9370DB"
+    },
+    {
+      "id": "71043",
+      "name": "Brooklyn NYU Langone Shuttle",
+      "shortName": null,
+      "color": "#bcbd22"
+    },
+    {
+      "id": "74771",
+      "name": "Route C",
+      "shortName": "C",
+      "color": "#4169E1"
+    },
+    {
+      "id": "72946",
+      "name": "Route E",
+      "shortName": "E",
+      "color": "#CD5C5C"
+    },
+    {
+      "id": "74772",
+      "name": "Route F",
+      "shortName": "F",
+      "color": "#3CB371"
+    },
+    {
+      "id": "45769",
+      "name": "Ferry Route 1",
+      "shortName": null,
+      "color": "#e6550d"
+    },
+    {
+      "id": "74773",
+      "name": "Route G",
+      "shortName": "G",
+      "color": "#87CEFA"
+    },
+    {
+      "id": "74017",
+      "name": "Manhattan Commuter Shuttle Eastbound Bus#1",
+      "shortName": null,
+      "color": "#637939"
+    },
+    {
+      "id": "74807",
+      "name": "Manhattan Commuter Shuttle Eastbound Bus#2",
+      "shortName": null,
+      "color": "#637939"
+    },
+    {
+      "id": "72705",
+      "name": "Manhattan Commuter Shuttle Westbound Bus#1",
+      "shortName": null,
+      "color": "#637939"
+    },
+    {
+      "id": "74808",
+      "name": "Manhattan Commuter Shuttle Westbound Bus#2",
+      "shortName": null,
+      "color": "#637939"
+    },
+    {
+      "id": "71042",
+      "name": "Manhattan Park Ave. Manhattan Park Ave",
+      "shortName": "Manhattan Park Ave.",
+      "color": "#843c39"
+    },
+    {
+      "id": "74774",
+      "name": "Route W",
+      "shortName": "W",
+      "color": "#FFA500"
+    }
+  ],
+  "stops": {
+    "6545": {
+      "id": "6545",
+      "name": "715 Broadway",
+      "lat": 40.729050553,
+      "lon": -73.993711118
+    },
+    "6547": {
+      "id": "6547",
+      "name": "Metro Tech Way",
+      "lat": 40.693106,
+      "lon": -73.985498
+    },
+    "6548": {
+      "id": "6548",
+      "name": "6 Metro Tech Center",
+      "lat": 40.694407,
+      "lon": -73.987149
+    },
+    "6550": {
+      "id": "6550",
+      "name": "Broadway & Broome St.",
+      "lat": 40.721635,
+      "lon": -74.000049
+    },
+    "6551": {
+      "id": "6551",
+      "name": "80 Lafayette Street",
+      "lat": 40.717122,
+      "lon": -74.001777
+    },
+    "6553": {
+      "id": "6553",
+      "name": "Lafayette & E. 4th St",
+      "lat": 40.727934,
+      "lon": -73.993036
+    },
+    "6556": {
+      "id": "6556",
+      "name": "20th Street At Loop Exit",
+      "lat": 40.734085,
+      "lon": -73.977781
+    },
+    "6557": {
+      "id": "6557",
+      "name": "Avenue C At 18th Street",
+      "lat": 40.731242,
+      "lon": -73.974143
+    },
+    "6558": {
+      "id": "6558",
+      "name": "Avenue C At 16th Street",
+      "lat": 40.729895,
+      "lon": -73.974684
+    },
+    "6559": {
+      "id": "6559",
+      "name": "Avenue C At 14th Street",
+      "lat": 40.72883,
+      "lon": -73.975474
+    },
+    "6560": {
+      "id": "6560",
+      "name": "14th Street At Avenue B",
+      "lat": 40.729371,
+      "lon": -73.977786
+    },
+    "6561": {
+      "id": "6561",
+      "name": "14th Street At Avenue A",
+      "lat": 40.730387,
+      "lon": -73.980194
+    },
+    "6562": {
+      "id": "6562",
+      "name": "14th Street At 1st Avenue",
+      "lat": 40.731251,
+      "lon": -73.982309
+    },
+    "6563": {
+      "id": "6563",
+      "name": "Third Avenue At 13th Street",
+      "lat": 40.733157,
+      "lon": -73.987323
+    },
+    "6564": {
+      "id": "6564",
+      "name": "14th St At Irving Place EB",
+      "lat": 40.734208156,
+      "lon": -73.989395416
+    },
+    "6566": {
+      "id": "6566",
+      "name": "First Avenue At 17th Street",
+      "lat": 40.73313,
+      "lon": -73.981222
+    },
+    "6567": {
+      "id": "6567",
+      "name": "First Avenue At 24th Street",
+      "lat": 40.737082,
+      "lon": -73.978343
+    },
+    "6568": {
+      "id": "6568",
+      "name": "First Avenue At 26th Street",
+      "lat": 40.738911,
+      "lon": -73.977014
+    },
+    "6570": {
+      "id": "6570",
+      "name": "Lexington Avenue At 31st Street",
+      "lat": 40.744396,
+      "lon": -73.981222
+    },
+    "6571": {
+      "id": "6571",
+      "name": "Gramercy Green",
+      "lat": 40.739329,
+      "lon": -73.982831
+    },
+    "6572": {
+      "id": "6572",
+      "name": "Third Avenue At 17th Street N",
+      "lat": 40.735426,
+      "lon": -73.985619
+    },
+    "6573": {
+      "id": "6573",
+      "name": "14th St At Irving Place WB",
+      "lat": 40.734116,
+      "lon": -73.989034
+    },
+    "6574": {
+      "id": "6574",
+      "name": "Third Avenue At 14th Street",
+      "lat": 40.733588,
+      "lon": -73.986889
+    },
+    "6575": {
+      "id": "6575",
+      "name": "Opposite Gramercy Green",
+      "lat": 40.739069,
+      "lon": -73.982951
+    },
+    "6576": {
+      "id": "6576",
+      "name": "Third Avenue At 30th Street",
+      "lat": 40.742775738,
+      "lon": -73.980241882
+    },
+    "6577": {
+      "id": "6577",
+      "name": "Morton & Greenwich",
+      "lat": 40.731424,
+      "lon": -74.007932
+    },
+    "6580": {
+      "id": "6580",
+      "name": "14th Street At Third Avenue",
+      "lat": 40.733102,
+      "lon": -73.986791
+    },
+    "7470": {
+      "id": "7470",
+      "name": "Permutter Cancer Center 160 E 34th St",
+      "lat": 40.745887,
+      "lon": -73.978563
+    },
+    "7473": {
+      "id": "7473",
+      "name": "Man Lobby Entrance 550 1st Ave",
+      "lat": 40.742886,
+      "lon": -73.974172
+    },
+    "7474": {
+      "id": "7474",
+      "name": "Admin 360 Park Avenue",
+      "lat": 40.741634,
+      "lon": -73.985225
+    },
+    "7475": {
+      "id": "7475",
+      "name": "Admin One Park Avenue",
+      "lat": 40.7461152,
+      "lon": -73.981906
+    },
+    "7494": {
+      "id": "7494",
+      "name": "Subway 4th Ave 53rd St.",
+      "lat": 40.644915,
+      "lon": -74.014311
+    },
+    "7495": {
+      "id": "7495",
+      "name": "Subway 4th Ave 59th St.",
+      "lat": 40.641215,
+      "lon": -74.018071
+    },
+    "7496": {
+      "id": "7496",
+      "name": "Admin Bldng 58th /2nd Ave EB",
+      "lat": 40.645294,
+      "lon": -74.022786
+    },
+    "8801": {
+      "id": "8801",
+      "name": "Cadman Plaza & Clark Street",
+      "lat": 40.696808,
+      "lon": -73.991254
+    },
+    "9296": {
+      "id": "9296",
+      "name": "Cleveland Pl & Spring St",
+      "lat": 40.722163,
+      "lon": -73.997112
+    },
+    "9298": {
+      "id": "9298",
+      "name": "Third Avenue At 11th Street (NB)",
+      "lat": 40.731519,
+      "lon": -73.988345
+    },
+    "9299": {
+      "id": "9299",
+      "name": "Third Avenue At 11th Street (SB)",
+      "lat": 40.731233,
+      "lon": -73.988729
+    },
+    "13109": {
+      "id": "13109",
+      "name": "Hospital 150 E55th st.",
+      "lat": 40.646939278,
+      "lon": -74.020947751
+    },
+    "13110": {
+      "id": "13110",
+      "name": "NYU Langone Health",
+      "lat": 40.741865,
+      "lon": -73.974879
+    },
+    "13111": {
+      "id": "13111",
+      "name": "Ferry 58th St.& Pier",
+      "lat": 40.646637,
+      "lon": -74.025521
+    },
+    "13117": {
+      "id": "13117",
+      "name": "Admin Bldng 58th /2nd Ave WB",
+      "lat": 40.645164,
+      "lon": -74.02262
+    },
+    "13118": {
+      "id": "13118",
+      "name": "Third Avenue At 17th Street S",
+      "lat": 40.735018,
+      "lon": -73.985978
+    },
+    "13121": {
+      "id": "13121",
+      "name": "34th St. & Penn Station EB",
+      "lat": 40.751045,
+      "lon": -73.990847
+    },
+    "13122": {
+      "id": "13122",
+      "name": "Herald Square 34th St. / 6th Ave EB",
+      "lat": 40.749454,
+      "lon": -73.987258
+    },
+    "13123": {
+      "id": "13123",
+      "name": "M 34th St/Park Ave EB",
+      "lat": 40.746832,
+      "lon": -73.980962
+    },
+    "13125": {
+      "id": "13125",
+      "name": "34th St. & 2nd Ave.",
+      "lat": 40.744805,
+      "lon": -73.976156
+    },
+    "13128": {
+      "id": "13128",
+      "name": "34th St. & Park Ave. WB",
+      "lat": 40.746996,
+      "lon": -73.981016
+    },
+    "13129": {
+      "id": "13129",
+      "name": "Herald Square 34th St. / 6th Ave. WB",
+      "lat": 40.750004,
+      "lon": -73.988156
+    },
+    "13131": {
+      "id": "13131",
+      "name": "8th Ave. & 41st St.",
+      "lat": 40.756185,
+      "lon": -73.990486
+    },
+    "13138": {
+      "id": "13138",
+      "name": "E River Term",
+      "lat": 40.743865,
+      "lon": -73.970701
+    },
+    "13139": {
+      "id": "13139",
+      "name": "Brooklyn Term",
+      "lat": 40.646526,
+      "lon": -74.026587
+    },
+    "70676": {
+      "id": "70676",
+      "name": "Port Authority 8th Ave",
+      "lat": 40.756185,
+      "lon": -73.990486
+    },
+    "70677": {
+      "id": "70677",
+      "name": "ACC 240 E. 38th Street WB",
+      "lat": 40.747569,
+      "lon": -73.974733
+    },
+    "70678": {
+      "id": "70678",
+      "name": "LOC 333 E. 38th Street",
+      "lat": 40.746532,
+      "lon": -73.972277
+    },
+    "70679": {
+      "id": "70679",
+      "name": "Grand Central Station 42nd St/Park Avenue",
+      "lat": 40.752404,
+      "lon": -73.97835
+    },
+    "70681": {
+      "id": "70681",
+      "name": "34th Street & Penn Station WB",
+      "lat": 40.751287,
+      "lon": -73.991189
+    },
+    "150435": {
+      "id": "150435",
+      "name": "NYU Lagone Hospital",
+      "lat": 40.6907073,
+      "lon": -73.996395627
+    },
+    "150436": {
+      "id": "150436",
+      "name": "Bergen Street Station",
+      "lat": 40.687059323,
+      "lon": -73.99016694
+    },
+    "150437": {
+      "id": "150437",
+      "name": "Borough Hall Station",
+      "lat": 40.692540722,
+      "lon": -73.990435335
+    },
+    "150438": {
+      "id": "150438",
+      "name": "Icon Parking Garage",
+      "lat": 40.69112,
+      "lon": -73.9899
+    }
+  },
+  "sequences": {
+    "41890": [
+      {
+        "position": "1",
+        "stopId": "150435"
+      },
+      {
+        "position": "2",
+        "stopId": "150436"
+      },
+      {
+        "position": "3",
+        "stopId": "150437"
+      },
+      {
+        "position": "4",
+        "stopId": "150438"
+      }
+    ],
+    "45769": [
+      {
+        "position": "1",
+        "stopId": "13138"
+      },
+      {
+        "position": "2",
+        "stopId": "13139"
+      },
+      {
+        "position": "3",
+        "stopId": "13138"
+      }
+    ],
+    "71042": [
+      {
+        "position": "1",
+        "stopId": "7473"
+      },
+      {
+        "position": "2",
+        "stopId": "7474"
+      },
+      {
+        "position": "3",
+        "stopId": "7475"
+      },
+      {
+        "position": "4",
+        "stopId": "7470"
+      },
+      {
+        "position": "5",
+        "stopId": "7473"
+      }
+    ],
+    "71043": [
+      {
+        "position": "1",
+        "stopId": "13109"
+      },
+      {
+        "position": "2",
+        "stopId": "13111"
+      },
+      {
+        "position": "3",
+        "stopId": "7496"
+      },
+      {
+        "position": "4",
+        "stopId": "13109"
+      },
+      {
+        "position": "5",
+        "stopId": "7494"
+      },
+      {
+        "position": "6",
+        "stopId": "7495"
+      },
+      {
+        "position": "7",
+        "stopId": "13117"
+      },
+      {
+        "position": "8",
+        "stopId": "13109"
+      }
+    ],
+    "72705": [
+      {
+        "position": "1",
+        "stopId": "7473"
+      },
+      {
+        "position": "3",
+        "stopId": "13128"
+      },
+      {
+        "position": "4",
+        "stopId": "70677"
+      },
+      {
+        "position": "5",
+        "stopId": "70678"
+      },
+      {
+        "position": "6",
+        "stopId": "70679"
+      },
+      {
+        "position": "7",
+        "stopId": "13129"
+      },
+      {
+        "position": "8",
+        "stopId": "70681"
+      },
+      {
+        "position": "9",
+        "stopId": "70676"
+      }
+    ],
+    "72946": [
+      {
+        "position": "1",
+        "stopId": "6545"
+      },
+      {
+        "position": "2",
+        "stopId": "6564"
+      },
+      {
+        "position": "3",
+        "stopId": "6580"
+      },
+      {
+        "position": "4",
+        "stopId": "6566"
+      },
+      {
+        "position": "5",
+        "stopId": "6567"
+      },
+      {
+        "position": "6",
+        "stopId": "6568"
+      },
+      {
+        "position": "7",
+        "stopId": "13110"
+      },
+      {
+        "position": "10",
+        "stopId": "6570"
+      },
+      {
+        "position": "11",
+        "stopId": "6571"
+      },
+      {
+        "position": "12",
+        "stopId": "13118"
+      },
+      {
+        "position": "13",
+        "stopId": "6573"
+      },
+      {
+        "position": "14",
+        "stopId": "6545"
+      }
+    ],
+    "74017": [
+      {
+        "position": "1",
+        "stopId": "13131"
+      },
+      {
+        "position": "2",
+        "stopId": "13121"
+      },
+      {
+        "position": "3",
+        "stopId": "13122"
+      },
+      {
+        "position": "4",
+        "stopId": "13123"
+      },
+      {
+        "position": "5",
+        "stopId": "13125"
+      },
+      {
+        "position": "6",
+        "stopId": "7473"
+      }
+    ],
+    "74769": [
+      {
+        "position": "1",
+        "stopId": "6545"
+      },
+      {
+        "position": "2",
+        "stopId": "6550"
+      },
+      {
+        "position": "4",
+        "stopId": "6551"
+      },
+      {
+        "position": "6",
+        "stopId": "6547"
+      },
+      {
+        "position": "7",
+        "stopId": "6548"
+      },
+      {
+        "position": "10",
+        "stopId": "8801"
+      },
+      {
+        "position": "12",
+        "stopId": "9296"
+      },
+      {
+        "position": "13",
+        "stopId": "6545"
+      }
+    ],
+    "74770": [
+      {
+        "position": "1",
+        "stopId": "6545"
+      },
+      {
+        "position": "2",
+        "stopId": "6550"
+      },
+      {
+        "position": "4",
+        "stopId": "6551"
+      },
+      {
+        "position": "5",
+        "stopId": "9296"
+      },
+      {
+        "position": "6",
+        "stopId": "6553"
+      },
+      {
+        "position": "7",
+        "stopId": "6545"
+      }
+    ],
+    "74771": [
+      {
+        "position": "1",
+        "stopId": "6556"
+      },
+      {
+        "position": "2",
+        "stopId": "6557"
+      },
+      {
+        "position": "3",
+        "stopId": "6558"
+      },
+      {
+        "position": "4",
+        "stopId": "6559"
+      },
+      {
+        "position": "5",
+        "stopId": "6560"
+      },
+      {
+        "position": "6",
+        "stopId": "6561"
+      },
+      {
+        "position": "7",
+        "stopId": "6562"
+      },
+      {
+        "position": "8",
+        "stopId": "6563"
+      },
+      {
+        "position": "10",
+        "stopId": "6545"
+      }
+    ],
+    "74772": [
+      {
+        "position": "1",
+        "stopId": "6545"
+      },
+      {
+        "position": "2",
+        "stopId": "9298"
+      },
+      {
+        "position": "3",
+        "stopId": "6574"
+      },
+      {
+        "position": "4",
+        "stopId": "6572"
+      },
+      {
+        "position": "5",
+        "stopId": "6575"
+      },
+      {
+        "position": "6",
+        "stopId": "6576"
+      },
+      {
+        "position": "7",
+        "stopId": "6570"
+      },
+      {
+        "position": "8",
+        "stopId": "6571"
+      },
+      {
+        "position": "9",
+        "stopId": "13118"
+      },
+      {
+        "position": "10",
+        "stopId": "6563"
+      },
+      {
+        "position": "11",
+        "stopId": "9299"
+      },
+      {
+        "position": "12",
+        "stopId": "6545"
+      }
+    ],
+    "74773": [
+      {
+        "position": "1",
+        "stopId": "6545"
+      },
+      {
+        "position": "2",
+        "stopId": "6577"
+      },
+      {
+        "position": "3",
+        "stopId": "6545"
+      }
+    ],
+    "74774": [
+      {
+        "position": "1",
+        "stopId": "6545"
+      },
+      {
+        "position": "2",
+        "stopId": "6550"
+      },
+      {
+        "position": "3",
+        "stopId": "6551"
+      },
+      {
+        "position": "4",
+        "stopId": "9296"
+      },
+      {
+        "position": "5",
+        "stopId": "6553"
+      },
+      {
+        "position": "6",
+        "stopId": "6564"
+      },
+      {
+        "position": "7",
+        "stopId": "6580"
+      },
+      {
+        "position": "8",
+        "stopId": "6566"
+      },
+      {
+        "position": "9",
+        "stopId": "6567"
+      },
+      {
+        "position": "10",
+        "stopId": "6568"
+      },
+      {
+        "position": "11",
+        "stopId": "13110"
+      },
+      {
+        "position": "12",
+        "stopId": "6570"
+      },
+      {
+        "position": "13",
+        "stopId": "6571"
+      },
+      {
+        "position": "14",
+        "stopId": "6572"
+      },
+      {
+        "position": "15",
+        "stopId": "6573"
+      },
+      {
+        "position": "17",
+        "stopId": "6545"
+      }
+    ],
+    "74807": [
+      {
+        "position": "1",
+        "stopId": "13131"
+      },
+      {
+        "position": "2",
+        "stopId": "13121"
+      },
+      {
+        "position": "3",
+        "stopId": "13122"
+      },
+      {
+        "position": "4",
+        "stopId": "13123"
+      },
+      {
+        "position": "5",
+        "stopId": "13125"
+      },
+      {
+        "position": "6",
+        "stopId": "7473"
+      }
+    ],
+    "74808": [
+      {
+        "position": "1",
+        "stopId": "7473"
+      },
+      {
+        "position": "3",
+        "stopId": "13128"
+      },
+      {
+        "position": "4",
+        "stopId": "70677"
+      },
+      {
+        "position": "5",
+        "stopId": "70678"
+      },
+      {
+        "position": "6",
+        "stopId": "70679"
+      },
+      {
+        "position": "7",
+        "stopId": "13129"
+      },
+      {
+        "position": "8",
+        "stopId": "70681"
+      },
+      {
+        "position": "9",
+        "stopId": "70676"
+      }
+    ]
+  },
+  "schedules": {
+    "72946": {
+      "routeId": "72946",
+      "name": "Route E",
+      "color": "#CD5C5C",
+      "stops": [
+        {
+          "stopId": "6545",
+          "position": "1",
+          "name": "715 Broadway",
+          "times": [
+            "8:05 AM",
+            "8:55 AM",
+            "9:40 AM",
+            "10:25 AM",
+            "11:10 AM",
+            "4:50 PM",
+            "5:40 PM",
+            "6:30 PM",
+            "7:20 PM",
+            "8:15 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6564",
+          "position": "2",
+          "name": "14th St At Irving Place EB",
+          "times": [
+            "8:11 AM",
+            "9:01 AM",
+            "9:46 AM",
+            "10:31 AM",
+            "11:16 AM",
+            "4:56 PM",
+            "5:46 PM",
+            "6:36 PM",
+            "7:26 PM",
+            "8:21 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6580",
+          "position": "3",
+          "name": "14th Street At Third Avenue",
+          "times": [
+            "8:12 AM",
+            "9:02 AM",
+            "9:47 AM",
+            "10:32 AM",
+            "11:17 AM",
+            "4:57 PM",
+            "5:47 PM",
+            "6:37 PM",
+            "7:27 PM",
+            "8:22 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6566",
+          "position": "4",
+          "name": "First Avenue At 17th Street",
+          "times": [
+            "8:15 AM",
+            "9:05 AM",
+            "9:50 AM",
+            "10:35 AM",
+            "11:20 AM",
+            "5:00 PM",
+            "5:50 PM",
+            "6:40 PM",
+            "7:30 PM",
+            "8:25 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6567",
+          "position": "5",
+          "name": "First Avenue At 24th Street",
+          "times": [
+            "7:30 AM",
+            "8:19 AM",
+            "9:09 AM",
+            "9:54 AM",
+            "10:39 AM",
+            "11:24 AM",
+            "4:15 PM",
+            "5:04 PM",
+            "5:54 PM",
+            "6:44 PM",
+            "7:34 PM",
+            "8:29 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6568",
+          "position": "6",
+          "name": "First Avenue At 26th Street",
+          "times": [
+            "7:31 AM",
+            "8:20 AM",
+            "9:10 AM",
+            "9:55 AM",
+            "10:40 AM",
+            "11:25 AM",
+            "4:16 PM",
+            "5:05 PM",
+            "5:55 PM",
+            "6:45 PM",
+            "7:35 PM",
+            "8:30 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "13110",
+          "position": "7",
+          "name": "NYU Langone Health",
+          "times": [
+            "7:36 AM",
+            "8:25 AM",
+            "9:15 AM",
+            "10:00 AM",
+            "10:45 AM",
+            "11:30 AM",
+            "4:21 PM",
+            "5:10 PM",
+            "6:00 PM",
+            "6:50 PM",
+            "7:40 PM",
+            "8:35 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6570",
+          "position": "10",
+          "name": "Lexington Avenue At 31st Street",
+          "times": [
+            "7:41 AM",
+            "8:30 AM",
+            "9:20 AM",
+            "10:05 AM",
+            "10:50 AM",
+            "11:35 AM",
+            "4:26 PM",
+            "5:15 PM",
+            "6:05 PM",
+            "6:55 PM",
+            "7:45 PM",
+            "8:40 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6571",
+          "position": "11",
+          "name": "Gramercy Green",
+          "times": [
+            "7:46 AM",
+            "8:35 AM",
+            "9:25 AM",
+            "10:10 AM",
+            "10:55 AM",
+            "11:40 AM",
+            "4:31 PM",
+            "5:20 PM",
+            "6:10 PM",
+            "7:00 PM",
+            "7:50 PM",
+            "8:45 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "13118",
+          "position": "12",
+          "name": "Third Avenue At 17th Street S",
+          "times": [
+            "7:48 AM",
+            "8:38 AM",
+            "9:28 AM",
+            "10:13 AM",
+            "10:58 AM",
+            "11:43 AM",
+            "4:34 PM",
+            "5:23 PM",
+            "6:13 PM",
+            "7:03 PM",
+            "7:53 PM",
+            "8:48 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6573",
+          "position": "13",
+          "name": "14th St At Irving Place WB",
+          "times": [
+            "7:50 AM",
+            "8:40 AM",
+            "9:30 AM",
+            "10:15 AM",
+            "11:00 AM",
+            "11:45 AM",
+            "4:36 PM",
+            "5:25 PM",
+            "6:15 PM",
+            "7:05 PM",
+            "7:55 PM",
+            "8:50 PM"
+          ],
+          "source": "live"
+        }
+      ],
+      "refreshedAt": "2026-09-02T03:21:27.140Z"
+    },
+    "74771": {
+      "routeId": "74771",
+      "name": "Route C",
+      "color": "#4169E1",
+      "stops": [
+        {
+          "stopId": "6556",
+          "position": "1",
+          "name": "20th Street At Loop Exit",
+          "times": [
+            "7:30 AM",
+            "8:00 AM",
+            "8:30 AM",
+            "9:10 AM",
+            "9:50 AM",
+            "10:30 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6557",
+          "position": "2",
+          "name": "Avenue C At 18th Street",
+          "times": [
+            "7:32 AM",
+            "8:02 AM",
+            "8:32 AM",
+            "9:12 AM",
+            "9:52 AM",
+            "10:32 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6558",
+          "position": "3",
+          "name": "Avenue C At 16th Street",
+          "times": [
+            "7:33 AM",
+            "8:03 AM",
+            "8:33 AM",
+            "9:13 AM",
+            "9:53 AM",
+            "10:33 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6559",
+          "position": "4",
+          "name": "Avenue C At 14th Street",
+          "times": [
+            "7:34 AM",
+            "8:04 AM",
+            "8:34 AM",
+            "9:14 AM",
+            "9:54 AM",
+            "10:34 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6560",
+          "position": "5",
+          "name": "14th Street At Avenue B",
+          "times": [
+            "7:35 AM",
+            "8:05 AM",
+            "8:35 AM",
+            "9:15 AM",
+            "9:55 AM",
+            "10:35 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6561",
+          "position": "6",
+          "name": "14th Street At Avenue A",
+          "times": [
+            "7:37 AM",
+            "8:07 AM",
+            "8:37 AM",
+            "9:17 AM",
+            "9:57 AM",
+            "10:37 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6562",
+          "position": "7",
+          "name": "14th Street At 1st Avenue",
+          "times": [
+            "7:40 AM",
+            "8:10 AM",
+            "8:40 AM",
+            "9:20 AM",
+            "10:00 AM",
+            "10:40 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6563",
+          "position": "8",
+          "name": "Third Avenue At 13th Street",
+          "times": [
+            "7:43 AM",
+            "8:13 AM",
+            "8:43 AM",
+            "9:23 AM",
+            "10:03 AM",
+            "10:43 AM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6545",
+          "position": "10",
+          "name": "715 Broadway",
+          "times": [],
+          "source": "none"
+        }
+      ],
+      "refreshedAt": "2026-09-02T03:21:24.113Z"
+    },
+    "74772": {
+      "routeId": "74772",
+      "name": "Route F",
+      "color": "#3CB371",
+      "stops": [
+        {
+          "stopId": "6545",
+          "position": "1",
+          "name": "715 Broadway",
+          "times": [
+            "10:50 AM",
+            "11:55 AM",
+            "12:40 PM",
+            "1:30 PM",
+            "2:30 PM",
+            "3:30 PM",
+            "3:50 PM",
+            "4:20 PM",
+            "4:50 PM",
+            "5:15 PM",
+            "5:45 PM",
+            "6:30 PM",
+            "7:20 PM",
+            "8:10 PM",
+            "9:10 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "9298",
+          "position": "2",
+          "name": "Third Avenue At 11th Street (NB)",
+          "times": [
+            "10:53 AM",
+            "11:58 AM",
+            "12:43 PM",
+            "1:33 PM",
+            "2:33 PM",
+            "3:33 PM",
+            "3:53 PM",
+            "4:23 PM",
+            "4:53 PM",
+            "5:18 PM",
+            "5:48 PM",
+            "6:33 PM",
+            "7:23 PM",
+            "8:13 PM",
+            "9:13 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6574",
+          "position": "3",
+          "name": "Third Avenue At 14th Street",
+          "times": [
+            "10:56 AM",
+            "12:01 PM",
+            "12:46 PM",
+            "1:36 PM",
+            "2:36 PM",
+            "3:36 PM",
+            "3:56 PM",
+            "4:26 PM",
+            "4:56 PM",
+            "5:21 PM",
+            "5:51 PM",
+            "6:36 PM",
+            "7:26 PM",
+            "8:16 PM",
+            "9:16 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6572",
+          "position": "4",
+          "name": "Third Avenue At 17th Street N",
+          "times": [
+            "10:57 AM",
+            "12:02 PM",
+            "12:47 PM",
+            "1:37 PM",
+            "2:37 PM",
+            "3:37 PM",
+            "3:57 PM",
+            "4:27 PM",
+            "4:57 PM",
+            "5:22 PM",
+            "5:52 PM",
+            "6:37 PM",
+            "7:27 PM",
+            "8:17 PM",
+            "9:17 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6575",
+          "position": "5",
+          "name": "Opposite Gramercy Green",
+          "times": [
+            "11:01 AM",
+            "12:06 PM",
+            "12:51 PM",
+            "1:41 PM",
+            "2:41 PM",
+            "3:41 PM",
+            "4:01 PM",
+            "4:31 PM",
+            "5:01 PM",
+            "5:26 PM",
+            "5:56 PM",
+            "6:41 PM",
+            "7:31 PM",
+            "8:21 PM",
+            "9:21 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6576",
+          "position": "6",
+          "name": "Third Avenue At 30th Street",
+          "times": [
+            "11:04 AM",
+            "12:09 PM",
+            "12:54 PM",
+            "1:44 PM",
+            "2:44 PM",
+            "3:44 PM",
+            "4:04 PM",
+            "4:34 PM",
+            "5:04 PM",
+            "5:29 PM",
+            "5:59 PM",
+            "6:44 PM",
+            "7:34 PM",
+            "8:24 PM",
+            "9:24 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6570",
+          "position": "7",
+          "name": "Lexington Avenue At 31st Street",
+          "times": [
+            "11:07 AM",
+            "12:12 PM",
+            "12:57 PM",
+            "1:47 PM",
+            "2:47 PM",
+            "3:47 PM",
+            "4:07 PM",
+            "4:37 PM",
+            "5:07 PM",
+            "5:32 PM",
+            "6:02 PM",
+            "6:47 PM",
+            "7:37 PM",
+            "8:27 PM",
+            "9:27 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6571",
+          "position": "8",
+          "name": "Gramercy Green",
+          "times": [
+            "7:30 AM",
+            "8:00 AM",
+            "8:12 AM",
+            "8:32 AM",
+            "8:52 AM",
+            "9:10 AM",
+            "9:20 AM",
+            "9:34 AM",
+            "9:50 AM",
+            "10:03 AM",
+            "10:30 AM",
+            "11:13 AM",
+            "12:18 PM",
+            "1:03 PM",
+            "1:53 PM",
+            "2:53 PM",
+            "3:53 PM",
+            "4:13 PM",
+            "4:43 PM",
+            "5:13 PM",
+            "5:38 PM",
+            "6:08 PM",
+            "6:53 PM",
+            "7:43 PM",
+            "8:33 PM",
+            "9:33 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "13118",
+          "position": "9",
+          "name": "Third Avenue At 17th Street S",
+          "times": [
+            "7:32 AM",
+            "8:02 AM",
+            "8:14 AM",
+            "8:34 AM",
+            "8:54 AM",
+            "9:12 AM",
+            "9:22 AM",
+            "9:36 AM",
+            "9:52 AM",
+            "10:05 AM",
+            "10:32 AM",
+            "11:15 AM",
+            "12:20 PM",
+            "1:05 PM",
+            "1:55 PM",
+            "2:55 PM",
+            "3:55 PM",
+            "4:15 PM",
+            "4:45 PM",
+            "5:15 PM",
+            "5:40 PM",
+            "6:10 PM",
+            "6:55 PM",
+            "7:45 PM",
+            "8:35 PM",
+            "9:35 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "6563",
+          "position": "10",
+          "name": "Third Avenue At 13th Street",
+          "times": [
+            "7:34 AM",
+            "8:04 AM",
+            "8:16 AM",
+            "8:36 AM",
+            "8:56 AM",
+            "9:14 AM",
+            "9:24 AM",
+            "9:38 AM",
+            "9:54 AM",
+            "10:07 AM",
+            "10:34 AM",
+            "11:17 AM",
+            "12:22 PM",
+            "1:07 PM",
+            "1:57 PM",
+            "2:57 PM",
+            "3:57 PM",
+            "4:17 PM",
+            "4:47 PM",
+            "5:17 PM",
+            "5:42 PM",
+            "6:12 PM",
+            "6:57 PM",
+            "7:47 PM",
+            "8:37 PM",
+            "9:37 PM"
+          ],
+          "source": "live"
+        },
+        {
+          "stopId": "9299",
+          "position": "11",
+          "name": "Third Avenue At 11th Street (SB)",
+          "times": [
+            "7:35 AM",
+            "8:05 AM",
+            "8:17 AM",
+            "8:37 AM",
+            "8:57 AM",
+            "9:15 AM",
+            "9:25 AM",
+            "9:39 AM",
+            "9:55 AM",
+            "10:08 AM",
+            "10:35 AM",
+            "11:19 AM",
+            "12:24 PM",
+            "1:09 PM",
+            "1:59 PM",
+            "2:59 PM",
+            "3:59 PM",
+            "4:19 PM",
+            "4:49 PM",
+            "5:19 PM",
+            "5:44 PM",
+            "6:14 PM",
+            "6:59 PM",
+            "7:49 PM",
+            "8:39 PM",
+            "9:39 PM"
+          ],
+          "source": "live"
+        }
+      ],
+      "refreshedAt": "2026-09-02T03:21:29.887Z"
+    }
+  },
+  "serviceDays": {
+    "72946": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ],
+    "74771": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+    ],
+    "74772": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "alerts": [
+    {
+      "id": "65886",
+      "title": "NYU Shuttle Service Resumes September 2",
+      "body": "We’re pleased to announce that NYU shuttle service for all colleges will resume on Wednesday, September 2, 2026, in conjunction with the start of the Fall semester.\nStudents, faculty, and staff can once again use the shuttle service to travel conveniently between NYU campuses and designated stops.\n\nPlease check the current shuttle routes and schedules before traveling.\n\nWelcome back, and we look forward to providing safe and convenient transportation throughout the semester!",
+      "from": "2026-09-01 11:23:52",
+      "to": "2026-09-05 11:23:52",
+      "important": true,
+      "routeId": null,
+      "relevant": true
+    },
+    {
+      "id": "65807",
+      "title": "NYU Langone Health Ferry 9/2",
+      "body": "Wednesday 9/2/26 The NYU Langone ferry is operating on the Gene Flatow Ferry.\n\nDue to mechanical issues, there will be a boat swap at BAT for 4:30pm to the Marian Heiskell.\n\nThe GPS is currently tracking, and the ferry is running on time.",
+      "from": "2026-09-01 18:16:22",
+      "to": "2026-09-02 22:30:22",
+      "important": true,
+      "routeId": null,
+      "relevant": false
+    }
+  ]
+}

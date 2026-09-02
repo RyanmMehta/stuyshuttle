@@ -1,0 +1,21 @@
+name = "stuyshuttle-push"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+# The web-push library reaches for node:crypto; without this the Worker throws
+# at runtime the first time it tries to sign a VAPID token.
+compatibility_flags = ["nodejs_compat"]
+
+# Every minute, all day: NYU can post an alert at any hour and we relay it
+# immediately. The late-bus / no-tracking checks are gated inside the code to
+# the morning service window in New York local time (DST-safe), so nothing
+# fires when no shuttle could be running. ~1,440 runs/day, well inside the
+# free tier.
+[triggers]
+crons = ["* * * * *"]
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "REPLACE_WITH_YOUR_KV_ID"
+
+[vars]
+VAPID_SUBJECT = "mailto:you@nyu.edu"
