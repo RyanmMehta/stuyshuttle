@@ -82,12 +82,17 @@ from a Safari tab), then Settings → Disruption alerts → Enable.
 ## Checking it works
 
 `/test` and `/run-now` can push to every subscriber, so they require an admin
-token (set once: `npx wrangler secret put ADMIN_TOKEN`):
+token (set once: `npx wrangler secret put ADMIN_TOKEN`; on this Mac the token
+is kept in `~/.stuyshuttle/admin-token`):
 
 ```bash
 curl -X POST https://stuyshuttle-push.rm6886.workers.dev/test \
-  -H "Authorization: Bearer <ADMIN_TOKEN>"
+  -H "Authorization: Bearer $(cat ~/.stuyshuttle/admin-token)"
 ```
+
+`POST /run-now` (same token) runs one cron cycle immediately and returns a
+trace — alerts fetched, alerts new, pushes sent — which is the quickest way to
+see the relay working.
 
 `GET /status` (public) shows subscriber count, how many alerts the cron has
 seen, and `lastCron` — a heartbeat updated at most every 10 minutes. If
