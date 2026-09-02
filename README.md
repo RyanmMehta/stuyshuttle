@@ -9,6 +9,12 @@ instead of showing a number it can't stand behind.
 No backend, no accounts, no cost. A static page that calls NYU's own shuttle
 system directly, plus an optional free worker for push notifications.
 
+**Live:** <https://ryanmmehta.github.io/stuyshuttle/> — open it in Safari on
+your iPhone, then Share → **Add to Home Screen**.
+
+**Calendar alarms feed:** `https://ryanmmehta.github.io/stuyshuttle/leave-times.ics`
+(Calendar → Add Subscription Calendar; updates itself whenever this repo is pushed).
+
 ---
 
 ## What I learned about the actual service
@@ -69,17 +75,16 @@ node tools/bake.mjs && node tools/ics.mjs
 3. Share → **Add to Home Screen**.
 4. Launch from the icon. Full screen, works offline, notifications possible.
 
-### Publishing free on GitHub Pages
+### Publishing
+
+This copy is published from the `main` branch of
+[RyanmMehta/stuyshuttle](https://github.com/RyanmMehta/stuyshuttle) via GitHub
+Pages. Any `git push` redeploys in about a minute; the app picks up the new
+version on its next open (the service worker re-fetches the shell fresh).
 
 ```bash
-git init && git add -A && git commit -m "StuyShuttle"
-git branch -M main
-git remote add origin https://github.com/<you>/stuyshuttle.git
-git push -u origin main
+git add -A && git commit -m "update" && git push
 ```
-
-Repo → **Settings → Pages → Source: `main`, folder `/ (root)`** →
-`https://<you>.github.io/stuyshuttle/`.
 
 ---
 
