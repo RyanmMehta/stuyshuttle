@@ -79,8 +79,11 @@ node tools/bake.mjs && node tools/ics.mjs
 
 This copy is published from the `main` branch of
 [RyanmMehta/stuyshuttle](https://github.com/RyanmMehta/stuyshuttle) via GitHub
-Pages. Any `git push` redeploys in about a minute; the app picks up the new
-version on its next open (the service worker re-fetches the shell fresh).
+Pages. Any `git push` redeploys in about a minute. An installed copy runs the
+previous version on its *first* open after a deploy (while the service worker
+fetches the new files in the background) and the new one from the next open —
+so a fix lands on the second launch, never mid-session. Bump `VERSION` in
+`sw.js` whenever app files change.
 
 ```bash
 git add -A && git commit -m "update" && git push
@@ -134,6 +137,13 @@ Guards that exist specifically so you don't miss a bus:
   check comes first. Route C on a Friday shows "No service on Fridays", not a
   timetable.
 - **NYU's own "out of service today" wins** over the baked timetable.
+- **A bus you can no longer walk to is named, not hidden.** Seen live on the
+  first morning: bus 2119 due at 10:29:39, a 4-minute walk 8 seconds short, no
+  later Route C — the screen says *Too late to walk it — 10:30 C, 2 min away,
+  only makeable if you run*, and still lists the bus. Never "nothing scheduled"
+  while a real bus is on the way.
+- **"Starts at" / "finished for today" come from the day's timetable**, not
+  hardcoded hours, so they stay right when NYU changes the schedule.
 - **The timetable re-checks itself** against NYU once a day (and on demand),
   so semester changes appear without a redeploy. If the live answer for a stop
   is empty — which happens — the previous times are kept, then a verified seed,
