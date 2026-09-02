@@ -72,11 +72,17 @@ from a Safari tab), then Settings → Disruption alerts → Enable.
 
 ## Checking it works
 
+`/test` and `/run-now` can push to every subscriber, so they require an admin
+token (set once: `npx wrangler secret put ADMIN_TOKEN`):
+
 ```bash
-curl -X POST https://stuyshuttle-push.<you>.workers.dev/test
+curl -X POST https://stuyshuttle-push.rm6886.workers.dev/test \
+  -H "Authorization: Bearer <ADMIN_TOKEN>"
 ```
 
-That pushes a test notification to every subscriber. Watch live logs with
+`GET /status` (public) shows subscriber count, how many alerts the cron has
+seen, and `lastCron` — a heartbeat updated at most every 10 minutes. If
+`lastCron` is stale, the cron trigger isn't firing. Watch live logs with
 `npx wrangler tail`.
 
 ## Scheduling

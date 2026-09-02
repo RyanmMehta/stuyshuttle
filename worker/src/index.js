@@ -30,6 +30,7 @@ const SYSTEM_ID = '1007';
 const DEVICE_ID = 'stuyshuttle-worker';
 const INDEX_KEY = 'subs:index';
 const SEEN_KEY = 'alerts:seen';
+const HEARTBEAT_KEY = 'cron:heartbeat';   // written at most every 10 min (KV free tier: 1k writes/day)
 
 const LATE_THRESHOLD_MIN = 3;      // push when the bus is this late
 const EXPECT_TRACKING_MIN = 12;    // within this many minutes of departure we expect a bus
@@ -69,11 +70,24 @@ export default {
       return json({ ok: true });
     }
 
+    // Anything that can push to subscribers, or run the check on demand, needs
+    // the admin token: the worker URL is public (it's in the app's source).
     if (url.pathname === '/test' && request.method === 'POST') {
+      if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401);
       const sent = await broadcast(env, {
         title: 'StuyShuttle', body: 'Test notification — delivery is working.', tag: 'test',
       });
       return json({ sent });
+    }
+
+    if (url.pathname === '/run-now' && request.method === 'POST') {
+      if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401);
+      try {
+        const summary = await runCheck(env, { trace: true });
+        return json({ ok: true, ...summary });
+      } catch (err) {
+        return json({ ok: false, error: String(err?.stack || err) }, 500);
+      }
     }
 
     // Diagnostic: build a real VAPID-signed, encrypted push payload for the
@@ -98,8 +112,14 @@ export default {
     }
 
     if (url.pathname === '/status') {
-      const index = await readIndex(env);
-      return json({ ok: true, subscribers: index.length, window: checkWindow() });
+      const [index, seenRaw, heartbeat] = await Promise.all([
+        readIndex(env), env.SUBS.get(SEEN_KEY), env.SUBS.get(HEARTBEAT_KEY),
+      ]);
+      let seen = 0; try { seen = JSON.parse(seenRaw || '[]').length; } catch { /* ignore */ }
+      return json({
+        ok: true, subscribers: index.length, seenAlerts: seen,
+        lastCron: heartbeat || null, window: checkWindow(),
+      });
     }
 
     return json({ ok: true, service: 'stuyshuttle-push' });
@@ -129,18 +149,24 @@ function checkWindow(now = new Date()) {
   };
 }
 
-async function runCheck(env) {
+async function runCheck(env, { trace = false } = {}) {
+  const summary = { subscribers: 0, alertsFetched: null, alertsFresh: null, pushed: 0, morning: false };
   const subs = await loadSubscribers(env);
+  summary.subscribers = subs.length;
   const { ny, morning } = checkWindow();
+  summary.morning = morning;
+
+  await heartbeat(env);
 
   // 1) New alerts, at any hour. Runs even with no subscribers so the
   //    "seen" list stays current: whoever enables notifications first gets
   //    only alerts posted from then on, not today's backlog.
-  await relayNewAlerts(env, subs);
-  if (!subs.length) return;
+  const relay = await relayNewAlerts(env, subs);
+  Object.assign(summary, relay);
+  if (!subs.length) return summary;
 
   // 2) Divergence from the timetable, mornings only.
-  if (!morning) return;
+  if (!morning) return summary;
   for (const { key, record } of subs) {
     const p = record.prefs || {};
     if (!p.routeId || !p.stopId) continue;
@@ -153,34 +179,49 @@ async function runCheck(env) {
     const stateKey = `state:${key}`;
     if ((await env.SUBS.get(stateKey)) === note.dedupe) continue;
     await env.SUBS.put(stateKey, note.dedupe, { expirationTtl: 6 * 3600 });
-    await sendOne(env, record.subscription, note.payload, key);
+    if (await sendOne(env, record.subscription, note.payload, key)) summary.pushed++;
   }
+  return summary;
+}
+
+/** Liveness marker for /status, written at most every 10 minutes. */
+async function heartbeat(env) {
+  const last = await env.SUBS.get(HEARTBEAT_KEY);
+  if (last && Date.now() - Date.parse(last) < 10 * 60_000) return;
+  await env.SUBS.put(HEARTBEAT_KEY, new Date().toISOString());
+}
+
+function isAdmin(request, env) {
+  const auth = request.headers.get('authorization') || '';
+  return Boolean(env.ADMIN_TOKEN) && auth === `Bearer ${env.ADMIN_TOKEN}`;
 }
 
 async function relayNewAlerts(env, subs) {
-  const alerts = await fetchAlerts().catch(() => null);
-  if (!alerts) return;
+  let alerts;
+  try { alerts = await fetchAlerts(); } catch (err) { return { alertsFetched: null, alertsFresh: null, alertError: String(err?.message || err) }; }
 
   const seen = new Set(JSON.parse((await env.SUBS.get(SEEN_KEY)) || '[]'));
   const fresh = alerts.filter((a) => !seen.has(a.id));
-  if (!fresh.length) return;
+  const out = { alertsFetched: alerts.length, alertsFresh: fresh.length, alertsPushed: 0 };
+  if (!fresh.length) return out;
 
   for (const a of fresh) {
     if (!subs.length) break; // nothing to deliver to; still record as seen below
     for (const { key, record } of subs) {
       const wantsAll = record.prefs?.notifyOtherServices === true;
       if (!a.relevant && !wantsAll) continue;
-      await sendOne(env, record.subscription, {
+      if (await sendOne(env, record.subscription, {
         title: a.title,
         body: a.body.length > 220 ? a.body.slice(0, 217) + '…' : a.body,
         tag: `alert-${a.id}`,
         url: './index.html#alerts',
-      }, key);
+      }, key)) out.alertsPushed++;
     }
   }
   // One write, and keep the set bounded.
   const next = [...alerts.map((a) => a.id), ...seen].slice(0, 300);
   await env.SUBS.put(SEEN_KEY, JSON.stringify([...new Set(next)]));
+  return out;
 }
 
 /** Decide whether anything about the next departure is worth an interruption. */
