@@ -138,6 +138,8 @@ function derive(now) {
   return {
     stop, route, position, dropoff, schedule, result, ride, trips, hero,
     walkToStop, walkToBuilding, destName: destinationName(dropoff),
+    // Today's departures at this stop, best source first, for honest empty states.
+    todaysTimes: eta?.scheduleTimes?.length ? eta.scheduleTimes : fallbackTimes,
   };
 }
 

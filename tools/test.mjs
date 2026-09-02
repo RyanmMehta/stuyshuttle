@@ -56,7 +56,11 @@ const mk = (now) => [planTrip({ departsAt: dep8, walkToStop: 4, buffer: 3, rideM
 check('7:45 → wait, leave in 8', [heroFor(mk(at(7, 45)), at(7, 45)).mode, heroFor(mk(at(7, 45)), at(7, 45)).leaveIn], ['wait', 8]);
 check('7:53 → NOW with full 3-min buffer left', [heroFor(mk(at(7, 53)), at(7, 53)).mode, mk(at(7, 53))[0].bufferLeftMinutes], ['now', 3]);
 check('7:55 → NOW with 1 min buffer left', [heroFor(mk(at(7, 55)), at(7, 55)).mode, mk(at(7, 55))[0].bufferLeftMinutes], ['now', 1]);
-check('7:57 → missed (4-min walk no longer fits)', [mk(at(7, 57))[0].missed, heroFor(mk(at(7, 57)), at(7, 57)).mode], [true, 'none']);
+check('7:57 → missed (4-min walk no longer fits) → hero says WHICH bus', [mk(at(7, 57))[0].missed, heroFor(mk(at(7, 57)), at(7, 57)).mode, fmtClock(heroFor(mk(at(7, 57)), at(7, 57)).trip.departsAt)], [true, 'missed', '8:00 AM']);
+check('no trips at all → none', heroFor([], at(7, 57)).mode, 'none');
+// Real 9/2 case: 10:25:47, bus 2119 due 10:29:39, walk 4 → 8 seconds short.
+const realMiss = [planTrip({ departsAt: nyTime(2026, 8, 2, 10, 29) + 39_000, walkToStop: 4, buffer: 3, rideMinutes: 17, walkToBuilding: 7, now: nyTime(2026, 8, 2, 10, 25) + 47_000, vehicle: '2119', live: true })];
+check('8 seconds short → missed, not "nothing scheduled"', heroFor(realMiss, nyTime(2026, 8, 2, 10, 25) + 47_000).mode, 'missed');
 
 console.log('\n== dropoff choice: 715 Bway must beat 3rd Ave/13th ==');
 const rideAlt = rideMinutesBetween(routeC, '6556', '6563', seqC);
@@ -153,6 +157,12 @@ ok('outOfService on a normal service day → "NYU reports" (unexpected)', /NYU r
 ok('outOfService on a Friday → calm "No service on Fridays" (expected)', /Fridays/.test(explainNoService(new Date(FRI), 'toCampus', { serviceDays: SD, routeId: '74771', outOfService: true }).title));
 ok('outOfService on a Saturday → "weekends"', /weekend/i.test(explainNoService(new Date(SAT), 'toCampus', { serviceDays: SD, routeId: '74771', outOfService: true }).title));
 ok('8:00 AM weekday = service running (null)', explainNoService(new Date(at(8, 0)), 'toCampus') === null);
+const cTimes = routeC.stops[0].times;
+const fin = explainNoService(new Date(at(10, 31)), 'toCampus', { serviceDays: SD, routeId: '74771', todaysTimes: cTimes, routeName: 'Route C', stopName: '20th St at Loop Exit' });
+ok('10:31 with last departure 10:30 → finished, names the last bus', /finished/.test(fin.title) && /10:30 AM/.test(fin.detail), fin.detail);
+const early = explainNoService(new Date(at(7, 10)), 'toCampus', { serviceDays: SD, routeId: '74771', todaysTimes: cTimes, routeName: 'Route C', stopName: '20th St at Loop Exit' });
+ok('7:10 → starts at 7:30 (data-driven)', /7:30 AM/.test(early.title), early.title);
+ok('10:31 with NO times known still explains', /finished/.test(explainNoService(new Date(at(10, 31)), 'toCampus').title));
 ok('LONG_WAIT_MIN is a sane 45', LONG_WAIT_MIN === 45);
 
 console.log('\n== alert text + relevance ==');

@@ -10,8 +10,10 @@ export function renderTrip(ctx) {
   frag.append(renderAlertBanner(ctx));
   frag.append(renderDirection(direction, actions));
 
-  if (derived.hero.mode === 'none' || !derived.trips.length) {
+  if (derived.hero.mode === 'none' || derived.hero.mode === 'missed' || !derived.trips.length) {
     frag.append(renderEmpty(ctx));
+    // Still list what exists (greyed as "too late") — never hide a real bus.
+    if (derived.trips.length) frag.append(renderDepartures(ctx));
     frag.append(renderSubway());
   } else {
     frag.append(renderHero(ctx));
@@ -193,15 +195,34 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 function renderEmpty(ctx) {
-  const { derived, direction, now, snapshot, eta } = ctx;
+  const { derived, direction, now, snapshot, eta, prefs } = ctx;
+  const { hero, route, stop } = derived;
+
+  // A real bus you can no longer walk to is not "nothing scheduled".
+  if (hero.mode === 'missed' && hero.trip) {
+    const t = hero.trip;
+    const who = t.live && t.vehicle ? `Bus ${t.vehicle}` : 'The shuttle';
+    const mins = Math.max(0, Math.floor((t.departsAt - now) / 60000));
+    return h('section', { class: 'hero hero--empty hero--missed' },
+      h('div', { class: 'hero__top' }, badge(derived.result, ctx.freshness, ctx.offline),
+        h('span', { class: 'hero__stopname' }, stop.name)),
+      h('div', { class: 'hero__kicker' }, 'Too late to walk it'),
+      h('div', { class: 'hero__empty-title' }, `${fmtTime(t.departsAt)} ${route.name.replace('Route ', '')} — ${mins <= 0 ? 'leaving now' : `${mins} min away`}`),
+      h('div', { class: 'hero__arrive' },
+        `${who} reaches ${stop.name} at ${fmtTime(t.departsAt)}; your walk is ${derived.walkToStop} min. ` +
+        (mins > 0 ? 'Only makeable if you run. ' : '') +
+        `No later ${route.name} from here today.`));
+  }
+
   const why = explainNoService(new Date(now), direction, {
-    serviceDays: snapshot.serviceDays, routeId: derived.route.id, outOfService: eta?.outOfService === true,
+    serviceDays: snapshot.serviceDays, routeId: route.id, outOfService: eta?.outOfService === true,
+    todaysTimes: derived.todaysTimes, routeName: route.name, stopName: stop.name,
   });
   return h('section', { class: 'hero hero--empty' },
     h('div', { class: 'hero__top' }, badge(derived.result, ctx.freshness, ctx.offline),
-      h('span', { class: 'hero__stopname' }, derived.stop.name)),
+      h('span', { class: 'hero__stopname' }, stop.name)),
     h('div', { class: 'hero__kicker' }, 'No shuttle'),
-    h('div', { class: 'hero__empty-title' }, why?.title || derived.result.reason || 'Nothing scheduled'),
+    h('div', { class: 'hero__empty-title' }, why?.title || derived.result.reason || 'No departures to show'),
     why?.detail ? h('div', { class: 'hero__arrive' }, why.detail) : null);
 }
 

@@ -259,13 +259,22 @@ export function planTrip({
   };
 }
 
-/** Which trip the hero should show, and how urgently. */
+/**
+ * Which trip the hero should show, and how urgently.
+ *   wait   — leave at trip.leaveAt
+ *   now    — inside the buffer; go
+ *   missed — every remaining bus today is already unreachable on foot; the
+ *            latest one is returned so the screen can say WHICH bus you just
+ *            missed rather than pretending nothing exists
+ *   none   — no departures at all
+ */
 export function heroFor(trips, now = Date.now()) {
   for (const t of trips) {
     if (t.missed) continue;
     if (t.tight) return { mode: 'now', trip: t };
     return { mode: 'wait', trip: t, leaveIn: minutesUntil(t.leaveAt, now) };
   }
+  if (trips.length) return { mode: 'missed', trip: trips[trips.length - 1] };
   return { mode: 'none', trip: null };
 }
 
@@ -329,7 +338,7 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
  */
 export function explainNoService(now = new Date(), direction = 'toCampus', ctx = {}) {
   const ts = now instanceof Date ? now.getTime() : now;
-  const { serviceDays, routeId, outOfService } = ctx;
+  const { serviceDays, routeId, outOfService, todaysTimes, routeName, stopName } = ctx;
   const p = nyParts(ts);
   const label = routeId ? serviceDayLabel(serviceDays, routeId) : null;
 
@@ -357,13 +366,32 @@ export function explainNoService(now = new Date(), direction = 'toCampus', ctx =
     };
   }
 
+  // Data-driven: today's published departures at this stop decide "not yet"
+  // and "finished", so the message is right even when the timetable changes.
+  if (Array.isArray(todaysTimes) && todaysTimes.length) {
+    const stamps = todaysTimes.map((t) => parseClockTime(t, ts)).filter((x) => x !== null).sort((a, b) => a - b);
+    if (stamps.length) {
+      const first = stamps[0], last = stamps[stamps.length - 1];
+      const rn = routeName || 'This route', sn = stopName || 'your stop';
+      if (ts < first) {
+        return { title: `${rn} starts at ${fmtClock(first)}`, detail: `First shuttle leaves ${sn} at ${fmtClock(first)}.` };
+      }
+      if (ts > last) {
+        return {
+          title: `${rn} is finished for today`,
+          detail: `Last departure from ${sn} was ${fmtClock(last)}.${direction === 'toCampus' ? ' Take the subway, or walk to Route E or F.' : ''}`,
+        };
+      }
+    }
+  }
+
   const mins = p.minutesOfDay;
   if (direction === 'toCampus') {
     if (mins < 7 * 60 + 30) return { title: 'Route C starts at 7:30 AM', detail: 'First shuttle leaves 20th St at Loop Exit at 7:30 AM.' };
-    if (mins > 10 * 60 + 43) {
+    if (mins > 10 * 60 + 30) {
       return {
         title: 'Route C is finished for today',
-        detail: 'Route C runs mornings only (7:30–10:43 AM). Take the subway, or walk to Route E or F.',
+        detail: 'Route C runs mornings only. Take the subway, or walk to Route E or F.',
       };
     }
   } else {

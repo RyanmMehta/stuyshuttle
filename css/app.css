@@ -140,6 +140,8 @@ details.card[open] > summary { margin-bottom: 10px; }
 }
 .hero--now { background: linear-gradient(160deg, color-mix(in srgb, var(--danger) 18%, var(--surface)), var(--surface) 60%); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
 .hero--empty { background: var(--surface); }
+.hero--missed { border-color: color-mix(in srgb, var(--sched) 45%, var(--line)); }
+.hero--missed .hero__kicker { color: var(--sched); }
 .hero__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .hero__stopname { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hero__kicker { color: var(--muted); font-size: 14px; font-weight: 700; }
