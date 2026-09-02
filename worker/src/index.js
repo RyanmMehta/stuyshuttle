@@ -76,6 +76,27 @@ export default {
       return json({ sent });
     }
 
+    // Diagnostic: build a real VAPID-signed, encrypted push payload for the
+    // supplied subscription WITHOUT sending it. Proves the crypto path works in
+    // this runtime. Returns only header names and sizes — never key material.
+    if (url.pathname === '/selftest' && request.method === 'POST') {
+      const body = await request.json().catch(() => null);
+      if (!body?.subscription?.endpoint) return json({ error: 'bad subscription' }, 400);
+      try {
+        const req = await buildPushPayload(
+          { data: { title: 'selftest', body: 'x', tag: 'selftest' }, options: { ttl: 60, urgency: 'high' } },
+          body.subscription, vapidKeys(env)
+        );
+        return json({
+          ok: true, headers: Object.keys(req.headers), bodyBytes: req.body.byteLength,
+          vapidSigned: /^WebPush /.test(req.headers.authorization || ''),
+          encoding: req.headers['content-encoding'], subject: (env.VAPID_SUBJECT || '').startsWith('mailto:'),
+        });
+      } catch (err) {
+        return json({ ok: false, error: String(err?.message || err) }, 500);
+      }
+    }
+
     if (url.pathname === '/status') {
       const index = await readIndex(env);
       return json({ ok: true, subscribers: index.length, window: checkWindow() });
@@ -311,7 +332,7 @@ async function sendOne(env, subscription, payload, kvKey) {
       // Pass the object, not a JSON string, or the SW's e.data.json() returns a string.
       { data: payload, options: { ttl: 900, urgency: 'high' } },
       subscription,
-      { subject: env.VAPID_SUBJECT || 'mailto:noreply@example.com', publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY }
+      vapidKeys(env)
     );
     const res = await fetch(subscription.endpoint, req);
     if (res.status === 404 || res.status === 410) { // browser dropped the subscription
@@ -331,6 +352,12 @@ async function broadcast(env, payload) {
   }
   return sent;
 }
+
+const vapidKeys = (env) => ({
+  subject: env.VAPID_SUBJECT || 'mailto:noreply@example.com',
+  publicKey: env.VAPID_PUBLIC_KEY,
+  privateKey: env.VAPID_PRIVATE_KEY,
+});
 
 async function hash(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
